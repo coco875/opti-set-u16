@@ -1,0 +1,9 @@
+[package]
+name = "opti-set-int"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+bit-set = "0.9.1"
+constcat = "0.6.1"
+rand = { version = "0.8", features = ["small_rng"] }
