@@ -77,12 +77,7 @@ pub mod cpu_timer {
     #[cfg(target_arch = "x86_64")]
     #[inline(always)]
     pub fn get_cycles() -> u64 {
-        unsafe {
-            let a: u32;
-            let d: u32;
-            core::arch::x86_64::__asm__!("rdtsc", out("eax") a, out("edx") d);
-            ((d as u64) << 32) | (a as u64)
-        }
+        unsafe { core::arch::x86_64::_rdtsc() }
     }
 
     #[cfg(target_arch = "aarch64")]
