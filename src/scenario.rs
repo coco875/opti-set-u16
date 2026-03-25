@@ -1,5 +1,5 @@
 use crate::timer::CpuTimer;
-use crate::types::SetInt;
+use crate::types::{SetInt, SetIntConstruct};
 use rand::prelude::*;
 use rand::rngs::SmallRng;
 
@@ -24,7 +24,7 @@ pub struct InsertScenario<T: SetInt> {
     indices: Vec<u16>,
 }
 
-impl<T: SetInt> Scenario for InsertScenario<T> {
+impl<T: SetIntConstruct> Scenario for InsertScenario<T> {
     fn new(capacity: usize, fill_percent: f64, seed: u64) -> Self {
         let mut indices = generate_indices(capacity, fill_percent, seed);
         let mut rng = SmallRng::seed_from_u64(seed.wrapping_add(1));
@@ -49,7 +49,7 @@ pub struct ContainsScenario<T: SetInt> {
     indices: Vec<u16>,
 }
 
-impl<T: SetInt> Scenario for ContainsScenario<T> {
+impl<T: SetIntConstruct> Scenario for ContainsScenario<T> {
     fn new(capacity: usize, fill_percent: f64, seed: u64) -> Self {
         let indices = generate_indices(capacity, fill_percent, seed);
         let mut bit_set = T::new();
@@ -79,7 +79,7 @@ pub struct RemoveScenario<T: SetInt> {
     indices: Vec<u16>,
 }
 
-impl<T: SetInt> Scenario for RemoveScenario<T> {
+impl<T: SetIntConstruct> Scenario for RemoveScenario<T> {
     fn new(capacity: usize, fill_percent: f64, seed: u64) -> Self {
         let indices = generate_indices(capacity, fill_percent, seed);
         let mut bit_set = T::new();
@@ -109,7 +109,7 @@ pub struct MixedScenario<T: SetInt> {
     indices: Vec<u16>,
 }
 
-impl<T: SetInt> Scenario for MixedScenario<T> {
+impl<T: SetIntConstruct> Scenario for MixedScenario<T> {
     fn new(capacity: usize, fill_percent: f64, seed: u64) -> Self {
         let indices = generate_indices(capacity, fill_percent, seed);
         let mut bit_set = T::new();
@@ -141,7 +141,7 @@ pub struct SparseScenario<T: SetInt> {
     indices: Vec<u16>,
 }
 
-impl<T: SetInt> Scenario for SparseScenario<T> {
+impl<T: SetIntConstruct> Scenario for SparseScenario<T> {
     fn new(capacity: usize, fill_percent: f64, seed: u64) -> Self {
         let mut rng = SmallRng::seed_from_u64(seed);
         let sparse_range = (capacity * 10) as u16;
