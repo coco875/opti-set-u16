@@ -7,7 +7,8 @@ mod timer;
 mod types;
 
 use scenario::{
-    ContainsScenario, InsertScenario, MixedScenario, RemoveScenario, Scenario, SparseScenario,
+    ContainsScenario, InsertScenario, MixedScenario, RemoveScenario, Scenario, ScenarioContructor,
+    SparseScenario,
 };
 use types::{BitSet, StdHashSet};
 

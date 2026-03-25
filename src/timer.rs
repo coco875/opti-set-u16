@@ -50,14 +50,6 @@ pub mod cpu_timer {
             get_cycles().wrapping_sub(self.start)
         }
 
-        pub fn elapsed_ns(&self) -> u64 {
-            self.elapsed_cycles() * 1_000_000_000 / self.freq_hz
-        }
-
-        pub fn elapsed(&self) -> Duration {
-            Duration::from_nanos(self.elapsed_ns())
-        }
-
         pub fn reset(&mut self) {
             self.start = get_cycles();
         }
@@ -109,14 +101,6 @@ pub mod cpu_timer {
 
         pub fn elapsed_cycles(&self) -> u64 {
             get_cycles().wrapping_sub(self.start)
-        }
-
-        pub fn elapsed_ns(&self) -> u64 {
-            self.elapsed_cycles()
-        }
-
-        pub fn elapsed(&self) -> Duration {
-            Duration::from_nanos(self.elapsed_ns())
         }
 
         pub fn reset(&mut self) {

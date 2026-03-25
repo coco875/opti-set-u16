@@ -1,5 +1,8 @@
+mod scenario;
+mod timer;
+
+use crate::register_set_int;
 use crate::types::{BitSet, SetInt, SetIntConstruct, StdHashSet};
-use crate::{register_scenario, register_set_int};
 
 macro_rules! build_array_set {
     ([$($ty:ident),*]) => {
