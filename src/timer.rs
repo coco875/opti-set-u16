@@ -46,7 +46,6 @@ pub mod cpu_timer {
 
 #[cfg(not(target_os = "macos"))]
 pub mod cpu_timer {
-    use std::time::Duration;
 
     #[cfg(target_arch = "x86_64")]
     #[inline(always)]
@@ -85,6 +84,7 @@ pub mod cpu_timer {
             get_cycles().wrapping_sub(self.start)
         }
 
+        #[allow(dead_code)]
         pub fn reset(&mut self) {
             self.start = get_cycles();
         }
