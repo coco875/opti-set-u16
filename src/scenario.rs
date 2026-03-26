@@ -4,19 +4,33 @@ use rand::prelude::*;
 use rand::rngs::SmallRng;
 
 pub trait Scenario {
-    fn run(&mut self) -> u64;
+    fn measure(&mut self) -> u64;
+    fn reset(&mut self);
+    fn run(&mut self) -> u64 {
+        let t = self.measure();
+        self.reset();
+        t
+    }
 }
 
-pub trait ScenarioContructor {
-    fn new(capacity: usize, fill_percent: f64, seed: u64) -> Self;
+pub trait ScenarioContructor: Scenario {
+    fn new(capacity: u16, fill_percent: f64, seed: u64) -> Self
+    where
+        Self: Sized,
+    {
+        let mut ret = Self::new_without_reset(capacity, fill_percent, seed);
+        ret.reset();
+        ret
+    }
+    fn new_without_reset(capacity: u16, fill_percent: f64, seed: u64) -> Self;
 }
 
-pub type ScenarioBuilder = fn(usize, f64, u64) -> Box<dyn Scenario>;
+pub type ScenarioBuilder = fn(u16, f64, u64) -> Box<dyn Scenario>;
 
-fn generate_indices(capacity: usize, fill_percent: f64, seed: u64) -> Vec<u16> {
+fn generate_indices(capacity: u16, fill_percent: f64, seed: u64) -> Vec<u16> {
     let mut rng = SmallRng::seed_from_u64(seed);
     let count = (capacity as f64 * fill_percent).round() as usize;
-    let mut indices: Vec<u16> = (0..capacity as u16).collect();
+    let mut indices: Vec<u16> = (0..capacity).collect();
     indices.shuffle(&mut rng);
     indices.truncate(count);
     indices
@@ -28,7 +42,7 @@ pub struct InsertScenario<T: SetInt> {
 }
 
 impl<T: SetIntConstruct> ScenarioContructor for InsertScenario<T> {
-    fn new(capacity: usize, fill_percent: f64, seed: u64) -> Self {
+    fn new_without_reset(capacity: u16, fill_percent: f64, seed: u64) -> Self {
         let mut indices = generate_indices(capacity, fill_percent, seed);
         let mut rng = SmallRng::seed_from_u64(seed.wrapping_add(1));
         indices.shuffle(&mut rng);
@@ -40,14 +54,16 @@ impl<T: SetIntConstruct> ScenarioContructor for InsertScenario<T> {
 }
 
 impl<T: SetIntConstruct> Scenario for InsertScenario<T> {
-    fn run(&mut self) -> u64 {
+    fn measure(&mut self) -> u64 {
         let timer = CpuTimer::new();
         for &idx in &self.indices {
             self.bit_set.insert(idx);
         }
-        let t = timer.elapsed_cycles();
+        timer.elapsed_cycles()
+    }
+
+    fn reset(&mut self) {
         self.bit_set.clear();
-        t
     }
 }
 
@@ -57,12 +73,9 @@ pub struct ContainsScenario<T: SetInt> {
 }
 
 impl<T: SetIntConstruct> ScenarioContructor for ContainsScenario<T> {
-    fn new(capacity: usize, fill_percent: f64, seed: u64) -> Self {
+    fn new_without_reset(capacity: u16, fill_percent: f64, seed: u64) -> Self {
         let indices = generate_indices(capacity, fill_percent, seed);
-        let mut bit_set = T::new();
-        for &idx in &indices {
-            bit_set.insert(idx);
-        }
+        let bit_set = T::new();
         let mut query_indices = indices.clone();
         let mut rng = SmallRng::seed_from_u64(seed.wrapping_add(1));
         query_indices.shuffle(&mut rng);
@@ -73,12 +86,19 @@ impl<T: SetIntConstruct> ScenarioContructor for ContainsScenario<T> {
     }
 }
 impl<T: SetIntConstruct> Scenario for ContainsScenario<T> {
-    fn run(&mut self) -> u64 {
+    fn measure(&mut self) -> u64 {
         let timer = CpuTimer::new();
         for &idx in &self.indices {
             let _ = self.bit_set.contains(idx);
         }
         timer.elapsed_cycles()
+    }
+
+    fn reset(&mut self) {
+        self.bit_set.clear();
+        for &idx in &self.indices {
+            self.bit_set.insert(idx);
+        }
     }
 }
 
@@ -88,12 +108,9 @@ pub struct RemoveScenario<T: SetInt> {
 }
 
 impl<T: SetIntConstruct> ScenarioContructor for RemoveScenario<T> {
-    fn new(capacity: usize, fill_percent: f64, seed: u64) -> Self {
+    fn new_without_reset(capacity: u16, fill_percent: f64, seed: u64) -> Self {
         let indices = generate_indices(capacity, fill_percent, seed);
-        let mut bit_set = T::new();
-        for &idx in &indices {
-            bit_set.insert(idx);
-        }
+        let bit_set = T::new();
         let mut remove_indices = indices.clone();
         let mut rng = SmallRng::seed_from_u64(seed.wrapping_add(1));
         remove_indices.shuffle(&mut rng);
@@ -104,12 +121,19 @@ impl<T: SetIntConstruct> ScenarioContructor for RemoveScenario<T> {
     }
 }
 impl<T: SetIntConstruct> Scenario for RemoveScenario<T> {
-    fn run(&mut self) -> u64 {
+    fn measure(&mut self) -> u64 {
         let timer = CpuTimer::new();
         for &idx in &self.indices {
             self.bit_set.remove(idx);
         }
         timer.elapsed_cycles()
+    }
+
+    fn reset(&mut self) {
+        self.bit_set.clear();
+        for &idx in &self.indices {
+            self.bit_set.insert(idx);
+        }
     }
 }
 
@@ -119,12 +143,9 @@ pub struct MixedScenario<T: SetInt> {
 }
 
 impl<T: SetIntConstruct> ScenarioContructor for MixedScenario<T> {
-    fn new(capacity: usize, fill_percent: f64, seed: u64) -> Self {
+    fn new_without_reset(capacity: u16, fill_percent: f64, seed: u64) -> Self {
         let indices = generate_indices(capacity, fill_percent, seed);
-        let mut bit_set = T::new();
-        for &idx in &indices {
-            bit_set.insert(idx);
-        }
+        let bit_set = T::new();
         let mut mixed_indices = indices.clone();
         let mut rng = SmallRng::seed_from_u64(seed.wrapping_add(1));
         mixed_indices.shuffle(&mut rng);
@@ -136,7 +157,7 @@ impl<T: SetIntConstruct> ScenarioContructor for MixedScenario<T> {
 }
 
 impl<T: SetIntConstruct> Scenario for MixedScenario<T> {
-    fn run(&mut self) -> u64 {
+    fn measure(&mut self) -> u64 {
         let timer = CpuTimer::new();
         for &idx in &self.indices {
             self.bit_set.insert(idx);
@@ -144,6 +165,13 @@ impl<T: SetIntConstruct> Scenario for MixedScenario<T> {
             self.bit_set.remove(idx);
         }
         timer.elapsed_cycles()
+    }
+
+    fn reset(&mut self) {
+        self.bit_set.clear();
+        for &idx in &self.indices {
+            self.bit_set.insert(idx);
+        }
     }
 }
 
@@ -153,14 +181,19 @@ pub struct SparseScenario<T: SetInt> {
 }
 
 impl<T: SetIntConstruct> ScenarioContructor for SparseScenario<T> {
-    fn new(capacity: usize, fill_percent: f64, seed: u64) -> Self {
+    fn new_without_reset(capacity: u16, fill_percent: f64, seed: u64) -> Self {
         let mut rng = SmallRng::seed_from_u64(seed);
-        let sparse_range = (capacity * 10) as u16;
-        let count = (capacity as f64 * fill_percent).round() as usize;
-        let mut indices: Vec<u16> = (0..sparse_range).collect();
+        let sparse_range = (capacity as u32 * 10) as usize;
+
+        // Clamp fill_percent to [0.0, 1.0] for safety
+        let fill_percent = fill_percent.clamp(0.0, 1.0);
+        let count: usize = (capacity as f64 * fill_percent).round() as usize;
+
+        let mut indices: Vec<u16> = (0..sparse_range as u16).collect();
         indices.shuffle(&mut rng);
         indices.truncate(count);
         indices.sort();
+
         Self {
             bit_set: T::new(),
             indices,
@@ -169,7 +202,7 @@ impl<T: SetIntConstruct> ScenarioContructor for SparseScenario<T> {
 }
 
 impl<T: SetIntConstruct> Scenario for SparseScenario<T> {
-    fn run(&mut self) -> u64 {
+    fn measure(&mut self) -> u64 {
         let timer = CpuTimer::new();
         for &idx in &self.indices {
             self.bit_set.insert(idx);
@@ -181,5 +214,8 @@ impl<T: SetIntConstruct> Scenario for SparseScenario<T> {
             self.bit_set.remove(idx);
         }
         timer.elapsed_cycles()
+    }
+    fn reset(&mut self) {
+        self.bit_set.clear();
     }
 }

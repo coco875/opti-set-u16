@@ -1,6 +1,5 @@
 #[cfg(target_os = "macos")]
 pub mod cpu_timer {
-    use std::time::Duration;
 
     #[cfg(target_arch = "aarch64")]
     #[inline(always)]
@@ -18,31 +17,14 @@ pub mod cpu_timer {
         0
     }
 
-    #[cfg(target_arch = "aarch64")]
-    #[inline(always)]
-    fn get_freq_hz() -> u64 {
-        unsafe {
-            let freq: u64;
-            core::arch::asm!("mrs x0, cntfrq_el0", out("x0") freq);
-            freq
-        }
-    }
-
-    #[cfg(not(target_arch = "aarch64"))]
-    fn get_freq_hz() -> u64 {
-        24_000_000
-    }
-
     pub struct CpuTimer {
         start: u64,
-        freq_hz: u64,
     }
 
     impl CpuTimer {
         pub fn new() -> Self {
             CpuTimer {
                 start: get_cycles(),
-                freq_hz: get_freq_hz(),
             }
         }
 
