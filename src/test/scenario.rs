@@ -1,6 +1,6 @@
 use crate::scenario::{
-    ContainsScenario, InsertScenario, MixedScenario, RemoveScenario, Scenario, ScenarioContructor,
-    SparseScenario,
+    ContainsScenario, InsertScenario, MixedScenario, RemoveScenario, Scenario, ScenarioBuilder,
+    ScenarioContructor, SparseScenario,
 };
 use crate::types::{BitSet, StdHashSet};
 use crate::{

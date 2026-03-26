@@ -12,7 +12,7 @@ macro_rules! build_array_inner {
                 $((
                     (|cap, fill, seed| -> Box<dyn Scenario> {
                         Box::new($s::<$ty>::new(cap, fill, seed))
-                    }) as fn(_, _, _) -> Box<dyn Scenario>,
+                    }) as ScenarioBuilder,
                     stringify!($s),
                     stringify!($ty)
                 )),*

@@ -11,6 +11,8 @@ pub trait ScenarioContructor {
     fn new(capacity: usize, fill_percent: f64, seed: u64) -> Self;
 }
 
+pub type ScenarioBuilder = fn(usize, f64, u64) -> Box<dyn Scenario>;
+
 fn generate_indices(capacity: usize, fill_percent: f64, seed: u64) -> Vec<u16> {
     let mut rng = SmallRng::seed_from_u64(seed);
     let count = (capacity as f64 * fill_percent).round() as usize;
