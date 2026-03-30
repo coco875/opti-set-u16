@@ -36,7 +36,7 @@ fn main() -> Result<()> {
         println!("{} / {}", sceario_name, type_name);
     }
     let mut file = OpenOptions::new()
-        .create_new(true)
+        .create(true)
         .truncate(true)
         .write(true)
         .open("output.csv")?;
