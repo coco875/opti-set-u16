@@ -244,4 +244,17 @@ proptest! {
             }
         }
     }
+
+    #[test]
+    fn proptest_iter(refs in proptest::collection::vec(any::<u16>(), 0..100)) {
+        for (set_builder, name) in all_set!() {
+            let mut set = set_builder();
+            for &v in &refs {
+                set.insert(v);
+            }
+            let expected: std::collections::HashSet<u16> = refs.iter().copied().collect();
+            let iter_result: std::collections::HashSet<u16> = set.iter().collect();
+            prop_assert_eq!(iter_result, expected, "iter result mismatch in {name}", name = name);
+        }
+    }
 }
