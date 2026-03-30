@@ -119,25 +119,32 @@ impl SetInt for StdHashSet {
     }
 
     fn intersection_with(&mut self, other: &Self) {
-        for item in self.iter().collect::<Vec<u16>>().iter() {
-            if !other.contains(*item) {
-                self.insert(*item);
+        for item in self.iter().collect::<Vec<u16>>() {
+            if !other.contains(item) {
+                self.remove(item);
             }
         }
     }
 
     fn difference_with(&mut self, other: &Self) {
-        for item in self.iter().collect::<Vec<u16>>().iter() {
-            if !other.contains(*item) {
-                self.insert(*item);
-            }
+        for item in other.iter() {
+            self.remove(item);
         }
     }
 
     fn symmetric_difference_with(&mut self, other: &Self) {
-        for item in other.iter() {
-            if !self.contains(item) {
-                self.insert(item);
+        let self_items: Vec<u16> = self.iter().collect();
+        let other_items: Vec<u16> = other.iter().collect();
+
+        for item in &self_items {
+            if other.contains(*item) {
+                self.remove(*item);
+            }
+        }
+
+        for item in &other_items {
+            if !self_items.contains(item) {
+                self.insert(*item);
             }
         }
     }
