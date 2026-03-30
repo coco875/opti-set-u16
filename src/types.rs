@@ -6,6 +6,12 @@ pub trait SetInt {
     fn insert(&mut self, n: u16);
     fn remove(&mut self, n: u16) -> bool;
     fn contains(&self, n: u16) -> bool;
+    fn len(&self) -> usize;
+    fn iter(&self) -> Box<dyn Iterator<Item = u16> + '_>;
+    fn union_with(&mut self, other: &Self);
+    fn intersection_with(&mut self, other: &Self);
+    fn difference_with(&mut self, other: &Self);
+    fn symmetric_difference_with(&mut self, other: &Self);
 }
 
 pub trait SetIntConstruct: SetInt {
@@ -40,6 +46,33 @@ impl SetInt for BitSet {
     fn contains(&self, n: u16) -> bool {
         self.bit_set.contains(n.into())
     }
+
+    fn len(&self) -> usize {
+        self.bit_set.count()
+    }
+
+    fn iter(&self) -> Box<dyn Iterator<Item = u16> + '_> {
+        let elems: Vec<u16> = self.bit_set.iter().map(|e| e as u16).collect();
+        Box::new(elems.into_iter())
+    }
+
+    fn union_with(&mut self, other: &Self) {
+        for item in other.iter() {
+            self.insert(item);
+        }
+    }
+
+    fn intersection_with(&mut self, other: &Self) {
+        self.bit_set.intersect_with(&other.bit_set);
+    }
+
+    fn difference_with(&mut self, other: &Self) {
+        self.bit_set.difference_with(&other.bit_set);
+    }
+
+    fn symmetric_difference_with(&mut self, other: &Self) {
+        self.bit_set.symmetric_difference_with(&other.bit_set);
+    }
 }
 
 pub struct StdHashSet {
@@ -69,5 +102,43 @@ impl SetInt for StdHashSet {
 
     fn contains(&self, n: u16) -> bool {
         self.hash_set.contains(&n)
+    }
+
+    fn len(&self) -> usize {
+        self.hash_set.len()
+    }
+
+    fn iter(&self) -> Box<dyn Iterator<Item = u16> + '_> {
+        Box::new(self.hash_set.iter().copied())
+    }
+
+    fn union_with(&mut self, other: &Self) {
+        for item in other.iter() {
+            self.insert(item);
+        }
+    }
+
+    fn intersection_with(&mut self, other: &Self) {
+        for item in self.iter().collect::<Vec<u16>>().iter() {
+            if !other.contains(*item) {
+                self.insert(*item);
+            }
+        }
+    }
+
+    fn difference_with(&mut self, other: &Self) {
+        for item in self.iter().collect::<Vec<u16>>().iter() {
+            if !other.contains(*item) {
+                self.insert(*item);
+            }
+        }
+    }
+
+    fn symmetric_difference_with(&mut self, other: &Self) {
+        for item in other.iter() {
+            if !self.contains(item) {
+                self.insert(item);
+            }
+        }
     }
 }
