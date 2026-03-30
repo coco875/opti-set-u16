@@ -1,7 +1,7 @@
 use core::convert::Into;
 use std::default::Default;
 
-pub trait SetInt {
+pub trait SetInt: 'static {
     fn clear(&mut self);
     fn insert(&mut self, n: u16);
     fn remove(&mut self, n: u16) -> bool;
