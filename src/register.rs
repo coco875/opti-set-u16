@@ -11,4 +11,3 @@ macro_rules! register_scenario {
         $callback!($($args)*, [InsertScenario, ContainsScenario, RemoveScenario, MixedScenario, SparseScenario])
     };
 }
-

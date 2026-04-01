@@ -10,8 +10,8 @@ macro_rules! build_array_inner {
             [
                 $($done,)*
                 $((
-                    (|cap, fill, seed| -> Box<dyn Scenario> {
-                        Box::new($s::<$ty>::new(cap, fill, seed))
+                    (|cap, fill, data, seed| -> Box<dyn Scenario> {
+                        Box::new($s::<$ty>::new(cap, fill, data, seed))
                     }) as ScenarioBuilder,
                     stringify!($s),
                     stringify!($ty)

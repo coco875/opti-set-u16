@@ -1,5 +1,4 @@
 use core::convert::Into;
-use std::default::Default;
 
 pub trait SetInt: 'static {
     fn clear(&mut self);
@@ -16,6 +15,7 @@ pub trait SetInt: 'static {
 
 pub trait SetIntConstruct: SetInt {
     fn new() -> Self;
+    fn with_capacity(capacity: usize) -> Self;
 }
 
 pub struct BitSet {
@@ -25,7 +25,13 @@ pub struct BitSet {
 impl SetIntConstruct for BitSet {
     fn new() -> Self {
         Self {
-            bit_set: bit_set::BitSet::<u16>::default(),
+            bit_set: bit_set::BitSet::<u16>::new_general(),
+        }
+    }
+
+    fn with_capacity(capacity: usize) -> Self {
+        Self {
+            bit_set: bit_set::BitSet::<u16>::with_capacity_general(capacity),
         }
     }
 }
@@ -83,6 +89,12 @@ impl SetIntConstruct for StdHashSet {
     fn new() -> Self {
         Self {
             hash_set: std::collections::HashSet::new(),
+        }
+    }
+
+    fn with_capacity(capacity: usize) -> Self {
+        Self {
+            hash_set: std::collections::HashSet::with_capacity(capacity),
         }
     }
 }
