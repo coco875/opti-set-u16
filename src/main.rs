@@ -21,7 +21,7 @@ use std::io::Write;
 
 use rand::prelude::*;
 
-/// 0-16 (16 bit) scenario | 16-21 (5 bit) capacity in bit | 21-26 (5 bit) fill in bit | 26-31 (5 bit) data in bit | 28-64 (33 bit) nothing | 64-128 (64 bit) seed
+/// 0-16 (16 bit) scenario | 16-21 (5 bit) capacity in bit | 21-26 (5 bit) fill in bit | 26-31 (5 bit) data in bit | 31-64 (33 bit) unused | 64-128 (64 bit) seed
 #[derive(Clone, Copy)]
 struct RunId(u128);
 
@@ -36,7 +36,7 @@ impl RunId {
         )
     }
 
-    /// senario index, capacity in bit, fill in bit, data in bit, seed
+    /// scenario index, capacity in bit, fill in bit, data in bit, seed
     fn unpack(self) -> (u16, u8, u8, u8, u64) {
         (
             ((self.0) & 0xFFFF) as u16,                      // scenario_idx
