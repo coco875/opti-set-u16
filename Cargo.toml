@@ -7,7 +7,7 @@ edition = "2024"
 anyhow = "1.0.102"
 bit-set = "0.10.0"
 constcat = "0.6.1"
-rand = { version = "0.8", features = ["small_rng"] }
+rand = { version = "0.10" }
 
 [dev-dependencies]
 proptest = "1.5"
