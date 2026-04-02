@@ -29,10 +29,10 @@ impl RunId {
     fn new(scenario: u16, cap_n: u8, fill_idx: u8, data_idx: u8, seed: u64) -> Self {
         Self(
             (scenario as u128)
-            | (((cap_n & 0b11111) as u128) << 16)
-            | (((fill_idx & 0b11111) as u128) << 21)
-            | (((data_idx & 0b11111) as u128) << 26)
-            | ((seed as u128) << 64),
+                | (((cap_n & 0b11111) as u128) << 16)
+                | (((fill_idx & 0b11111) as u128) << 21)
+                | (((data_idx & 0b11111) as u128) << 26)
+                | ((seed as u128) << 64),
         )
     }
 
@@ -40,9 +40,9 @@ impl RunId {
     fn unpack(self) -> (u16, u8, u8, u8, u64) {
         (
             ((self.0) & 0xFFFF) as u16,                      // scenario_idx
-            ((self.0 >> 16) & 0b1111) as u8,                 // cap_n (1..=16)
-            ((self.0 >> 20) & 0b1111) as u8,                 // fill_idx
-            ((self.0 >> 24) & 0b1111) as u8,                 // data_idx
+            ((self.0 >> 16) & 0b11111) as u8,                // cap_n (1..=16)
+            ((self.0 >> 21) & 0b11111) as u8,                // fill_idx
+            ((self.0 >> 26) & 0b11111) as u8,                // data_idx
             ((self.0 >> 64) & 0xFFFF_FFFF_FFFF_FFFF) as u64, // seed
         )
     }
