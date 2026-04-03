@@ -7,6 +7,9 @@ mod timer;
 mod types;
 
 use std::fs::OpenOptions;
+use std::io::stderr;
+use std::io::IsTerminal;
+use std::time::Instant;
 
 use anyhow::Result;
 use clap::Parser;
@@ -151,7 +154,28 @@ fn main() -> Result<()> {
 
     all_run.shuffle(&mut rng);
 
-    for run_id in all_run {
+    let total = all_run.len();
+    let start = Instant::now();
+    let mut last_pct = 0;
+
+    for (i, run_id) in all_run.iter().enumerate() {
+        let pct = (i + 1) * 100 / total;
+        if pct >= last_pct + 10 || i + 1 == total {
+            last_pct = pct;
+            let elapsed = start.elapsed().as_secs_f64();
+            let eta = elapsed / (i + 1) as f64 * (total - i - 1) as f64;
+            if stderr().is_terminal() {
+                eprint!("\r");
+            }
+            eprintln!(
+                "[{pct:3}%] {}/{} elapsed: {:.1}s ETA: {:.1}s",
+                i + 1,
+                total,
+                elapsed,
+                eta
+            );
+        }
+
         let (scenario_id, cap_bit, fill_bit, data_bit, seed) = run_id.unpack();
         let (scenario_builder, sceario_name, type_name) = scenario[scenario_id as usize];
         let cap = ((1u32 << cap_bit) - 1) as u16;
