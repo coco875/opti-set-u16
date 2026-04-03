@@ -1,3 +1,5 @@
 /target
 output.csv
 proptest-regressions
+stat/*.png
+stat/*/*
