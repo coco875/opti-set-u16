@@ -2,6 +2,40 @@
 
 Benchmark tool comparing different integer set implementations across various scenarios.
 
+## Usage
+
+### CLI Arguments
+
+```bash
+cargo run -- [OPTIONS]
+```
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `-s, --sample <N>` | Number of seed iterations | 10 |
+| `--min-bit <N>` | Minimum bit width | 4 |
+| `--max-bit <N>` | Maximum bit width | 16 |
+| `-f, --filter-scenario <NAME>` | Run only scenarios matching this substring | (none) |
+| `-c, --config <PATH>` | Path to a YAML config file | (none) |
+
+### Configuration File
+
+You can also use a YAML config file with `--config`:
+
+```yaml
+# config.yaml
+sample: 20
+min_bit: 8
+max_bit: 16
+filter_scenario: "BitSet"
+```
+
+```bash
+cargo run -- --config config.yaml
+```
+
+CLI arguments take precedence over values in the config file.
+
 ## Adding a New Implementation
 
 1. Ensure your type implements the `SetInt` trait (defined in `src/types/`)

@@ -9,6 +9,8 @@ mod types;
 use std::fs::OpenOptions;
 
 use anyhow::Result;
+use clap::Parser;
+use serde::Deserialize;
 
 use scenario::*;
 use types::*;
@@ -17,6 +19,49 @@ use std::io::BufWriter;
 use std::io::Write;
 
 use rand::prelude::*;
+
+#[derive(Parser)]
+#[command(name = "opti-set-int", about = "Benchmark integer set implementations")]
+struct Cli {
+    #[arg(short, long)]
+    config: Option<String>,
+
+    #[arg(short, long)]
+    sample: Option<u64>,
+
+    #[arg(long)]
+    min_bit: Option<u32>,
+
+    #[arg(long)]
+    max_bit: Option<u32>,
+
+    #[arg(short, long)]
+    filter_scenario: Option<String>,
+}
+
+#[derive(Deserialize, Default)]
+struct Config {
+    sample: Option<u64>,
+    min_bit: Option<u32>,
+    max_bit: Option<u32>,
+    filter_scenario: Option<String>,
+}
+
+impl Config {
+    fn load(path: &str) -> Result<Self> {
+        let content = std::fs::read_to_string(path)?;
+        Ok(serde_yaml::from_str(&content)?)
+    }
+
+    fn merge_with_cli(self, cli: Cli) -> Self {
+        Self {
+            sample: cli.sample.or(self.sample),
+            min_bit: cli.min_bit.or(self.min_bit),
+            max_bit: cli.max_bit.or(self.max_bit),
+            filter_scenario: cli.filter_scenario.or(self.filter_scenario),
+        }
+    }
+}
 
 /// 0-16 (16 bit) scenario | 16-21 (5 bit) capacity in bit | 21-26 (5 bit) fill in bit | 26-31 (5 bit) data in bit | 31-64 (33 bit) unused | 64-128 (64 bit) seed
 #[derive(Clone, Copy)]
@@ -46,6 +91,20 @@ impl RunId {
 }
 
 fn main() -> Result<()> {
+    let cli = Cli::parse();
+
+    let config = if let Some(ref config_path) = cli.config {
+        let file_config = Config::load(config_path)?;
+        file_config.merge_with_cli(cli)
+    } else {
+        Config::default().merge_with_cli(cli)
+    };
+
+    let sample = config.sample.unwrap_or(10);
+    let min_bit = config.min_bit.unwrap_or(4);
+    let max_bit = config.max_bit.unwrap_or(16);
+    let filter_scenario = config.filter_scenario;
+
     let file = OpenOptions::new()
         .create(true)
         .truncate(true)
@@ -57,7 +116,6 @@ fn main() -> Result<()> {
         "Scenario name, Type name, maximum capacity, fill, data, seed, time"
     )?;
 
-    let sample = 10;
     let mut rng = SmallRng::seed_from_u64(0);
 
     let mut all_run: Vec<_> = vec![];
@@ -65,11 +123,24 @@ fn main() -> Result<()> {
 
     let mut seed = rng.next_u64();
     for _ in 0..sample {
-        for sceanrio_id in 0..scenario.len() {
-            for cap in 1..=16 {
-                for fill in 1..=cap {
-                    for data in 1..=cap {
-                        all_run.push(RunId::new(sceanrio_id as u16, cap, fill, data, seed));
+        for (scenario_id, &(_scenario_builder, scenario_name, _type_name)) in
+            scenario.iter().enumerate()
+        {
+            if let Some(ref filter) = filter_scenario {
+                if !scenario_name.contains(filter.as_str()) {
+                    continue;
+                }
+            }
+            for cap in min_bit..=max_bit {
+                for fill in min_bit..=cap {
+                    for data in min_bit..=cap {
+                        all_run.push(RunId::new(
+                            scenario_id as u16,
+                            cap as u8,
+                            fill as u8,
+                            data as u8,
+                            seed,
+                        ));
                     }
                 }
             }
