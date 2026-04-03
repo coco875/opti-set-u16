@@ -7,8 +7,8 @@ mod timer;
 mod types;
 
 use std::fs::OpenOptions;
-use std::io::stderr;
 use std::io::IsTerminal;
+use std::io::stderr;
 use std::time::Instant;
 
 use anyhow::Result;
@@ -53,7 +53,7 @@ struct Config {
 impl Config {
     fn load(path: &str) -> Result<Self> {
         let content = std::fs::read_to_string(path)?;
-        Ok(serde_yaml::from_str(&content)?)
+        Ok(toml::from_str(&content)?)
     }
 
     fn merge_with_cli(self, cli: Cli) -> Self {
@@ -97,6 +97,7 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
 
     let config = if let Some(ref config_path) = cli.config {
+        println!("Load {config_path}");
         let file_config = Config::load(config_path)?;
         file_config.merge_with_cli(cli)
     } else {

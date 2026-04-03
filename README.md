@@ -20,18 +20,18 @@ cargo run -- [OPTIONS]
 
 ### Configuration File
 
-You can also use a YAML config file with `--config`:
+You can also use a TOML config file with `--config`:
 
-```yaml
-# config.yaml
-sample: 20
-min_bit: 8
-max_bit: 16
-filter_scenario: "BitSet"
+```toml
+# config.toml
+sample = 20
+min_bit = 8
+max_bit = 16
+filter_scenario = "BitSet"
 ```
 
 ```bash
-cargo run -- --config config.yaml
+cargo run -- --config config.toml
 ```
 
 CLI arguments take precedence over values in the config file.
