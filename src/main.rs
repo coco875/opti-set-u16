@@ -10,11 +10,8 @@ use std::fs::OpenOptions;
 
 use anyhow::Result;
 
-use scenario::{
-    ContainsScenario, InsertScenario, MixedScenario, RemoveScenario, Scenario, ScenarioBuilder,
-    ScenarioContructor, SparseScenario,
-};
-use types::{BitSet, StdHashSet};
+use scenario::*;
+use types::*;
 
 use std::io::BufWriter;
 use std::io::Write;

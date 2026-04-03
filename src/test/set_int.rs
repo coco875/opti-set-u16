@@ -1,5 +1,5 @@
 use crate::register_set_int;
-use crate::types::{BitSet, SetInt, SetIntConstruct, StdHashSet};
+use crate::types::*;
 use proptest::prelude::*;
 use std::any::Any;
 
