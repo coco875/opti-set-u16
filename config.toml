@@ -1,0 +1,4 @@
+sample = 20
+min_bit = 8
+max_bit = 16
+filter_scenario = "MixedScenario"
