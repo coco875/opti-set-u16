@@ -1,14 +1,18 @@
 mod interval;
 mod lib_bit_set;
+mod lib_fx_hash_set;
 mod lib_interval;
 mod lib_roaring;
 mod std_hash_set;
+mod std_tree_set;
 
 pub use interval::IntervalSet;
 pub use lib_bit_set::LibBitSet;
+pub use lib_fx_hash_set::LibFxHashSet;
 pub use lib_interval::LibInterval;
 pub use lib_roaring::LibRoaring;
 pub use std_hash_set::StdHashSet;
+pub use std_tree_set::StdTreeSet;
 
 pub trait SetInt: 'static {
     fn clear(&mut self);
