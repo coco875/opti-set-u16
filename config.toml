@@ -1,3 +1,11 @@
+filter_scenario = [
+  "MixedScenario",
+  "IterScenario",
+  "UnionScenario",
+  "IntersectionScenario",
+  "DifferenceScenario",
+  "SymmetricDifferenceScenario",
+]
 sample = 20
 min_bit = 16
 max_bit = 16
@@ -5,4 +13,3 @@ min_fill_bit = 0
 max_fill_bit = 0
 min_data_bit = 4
 max_data_bit = 16
-filter_scenario = "MixedScenario"

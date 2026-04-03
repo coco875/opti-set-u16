@@ -51,7 +51,7 @@ struct Cli {
     max_data_bit: Option<u32>,
 
     #[arg(short, long)]
-    filter_scenario: Option<String>,
+    filter_scenario: Option<Vec<String>>,
 }
 
 #[derive(Deserialize, Default)]
@@ -63,7 +63,7 @@ struct Config {
     max_fill_bit: Option<u32>,
     min_data_bit: Option<u32>,
     max_data_bit: Option<u32>,
-    filter_scenario: Option<String>,
+    filter_scenario: Option<Vec<String>>,
 }
 
 impl Config {
@@ -81,7 +81,11 @@ impl Config {
             max_fill_bit: cli.max_fill_bit.or(self.max_fill_bit),
             min_data_bit: cli.min_data_bit.or(self.min_data_bit),
             max_data_bit: cli.max_data_bit.or(self.max_data_bit),
-            filter_scenario: cli.filter_scenario.or(self.filter_scenario),
+            filter_scenario: match (cli.filter_scenario, self.filter_scenario) {
+                (Some(cli_filters), _) => Some(cli_filters),
+                (None, Some(config_filters)) => Some(config_filters),
+                (None, None) => None,
+            },
         }
     }
 }
@@ -154,8 +158,8 @@ fn main() -> Result<()> {
         for (scenario_id, &(_scenario_builder, scenario_name, _type_name)) in
             scenario.iter().enumerate()
         {
-            if let Some(ref filter) = filter_scenario {
-                if !scenario_name.contains(filter.as_str()) {
+            if let Some(ref filters) = filter_scenario {
+                if !filters.iter().any(|f| scenario_name.contains(f.as_str())) {
                     continue;
                 }
             }
