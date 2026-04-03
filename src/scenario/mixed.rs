@@ -1,4 +1,4 @@
-use super::{Scenario, ScenarioContructor, fill_set, generate_indices};
+use super::{fill_set, generate_indices, Scenario, ScenarioContructor};
 use crate::types::{SetInt, SetIntConstruct};
 use std::hint::black_box;
 

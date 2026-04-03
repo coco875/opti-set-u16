@@ -1,14 +1,28 @@
+mod clear;
 mod contain;
+mod difference;
 mod insert;
+mod intersection;
+mod iter;
+mod len;
 mod mixed;
 mod remove;
 mod sparse;
+mod symmetric_difference;
+mod union;
 
+pub use clear::ClearScenario;
 pub use contain::ContainsScenario;
+pub use difference::DifferenceScenario;
 pub use insert::InsertScenario;
+pub use intersection::IntersectionScenario;
+pub use iter::IterScenario;
+pub use len::LenScenario;
 pub use mixed::MixedScenario;
 pub use remove::RemoveScenario;
 pub use sparse::SparseScenario;
+pub use symmetric_difference::SymmetricDifferenceScenario;
+pub use union::UnionScenario;
 
 use crate::timer::CpuTimer;
 use crate::types::SetInt;
