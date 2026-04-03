@@ -7,8 +7,8 @@ filter_scenario = [
   "SymmetricDifferenceScenario",
 ]
 sample = 20
-min_bit = 16
-max_bit = 16
+min_bit = 5
+max_bit = 14
 min_fill_bit = 0
 max_fill_bit = 0
 min_data_bit = 4
