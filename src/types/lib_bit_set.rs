@@ -1,10 +1,10 @@
 use super::{SetInt, SetIntConstruct};
 
-pub struct BitSet {
+pub struct LibBitSet {
     bit_set: bit_set::BitSet<u16>,
 }
 
-impl SetIntConstruct for BitSet {
+impl SetIntConstruct for LibBitSet {
     fn new() -> Self {
         Self {
             bit_set: bit_set::BitSet::<u16>::new_general(),
@@ -18,7 +18,7 @@ impl SetIntConstruct for BitSet {
     }
 }
 
-impl SetInt for BitSet {
+impl SetInt for LibBitSet {
     fn clear(&mut self) {
         self.bit_set.make_empty();
     }

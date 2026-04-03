@@ -1,7 +1,7 @@
 #[macro_export]
 macro_rules! register_set_int {
     ($callback:ident) => {
-        $callback!([BitSet, StdHashSet])
+        $callback!([LibBitSet, StdHashSet, LibInterval, IntervalSet, LibRoaring])
     };
 }
 
