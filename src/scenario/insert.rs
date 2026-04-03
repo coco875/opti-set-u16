@@ -1,4 +1,4 @@
-use super::{generate_indices, Scenario, ScenarioContructor};
+use super::{Scenario, ScenarioContructor, generate_indices};
 use crate::types::{SetInt, SetIntConstruct};
 
 pub struct InsertScenario<T: SetInt> {

@@ -1,4 +1,4 @@
-use super::{fill_set, generate_indices, Scenario, ScenarioContructor};
+use super::{Scenario, ScenarioContructor, fill_set, generate_indices};
 use crate::types::{SetInt, SetIntConstruct};
 
 pub struct DifferenceScenario<T: SetInt> {

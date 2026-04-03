@@ -1,4 +1,4 @@
-use super::{fill_set, Scenario, ScenarioContructor};
+use super::{Scenario, ScenarioContructor, fill_set};
 use crate::types::{SetInt, SetIntConstruct};
 use rand::prelude::*;
 use rand::rngs::SmallRng;
