@@ -13,10 +13,14 @@ cargo run -- [OPTIONS]
 | Flag | Description | Default |
 |------|-------------|---------|
 | `-s, --sample <N>` | Number of seed iterations | 10 |
-| `--min-bit <N>` | Minimum bit width | 4 |
-| `--max-bit <N>` | Maximum bit width | 16 |
+| `--min-bit <N>` | Minimum capacity bit width | 4 |
+| `--max-bit <N>` | Maximum capacity bit width | 16 |
+| `--min-fill-bit <N>` | Minimum fill bit width | `--min-bit` |
+| `--max-fill-bit <N>` | Maximum fill bit width | `--max-bit` |
+| `--min-data-bit <N>` | Minimum data bit width | `--min-bit` |
+| `--max-data-bit <N>` | Maximum data bit width | `--max-bit` |
 | `-f, --filter-scenario <NAME>` | Run only scenarios matching this substring | (none) |
-| `-c, --config <PATH>` | Path to a YAML config file | (none) |
+| `-c, --config <PATH>` | Path to a TOML config file | (none) |
 
 ### Configuration File
 
@@ -27,6 +31,10 @@ You can also use a TOML config file with `--config`:
 sample = 20
 min_bit = 8
 max_bit = 16
+min_fill_bit = 4
+max_fill_bit = 12
+min_data_bit = 4
+max_data_bit = 16
 filter_scenario = "BitSet"
 ```
 
