@@ -8,7 +8,8 @@ macro_rules! register_set_int {
             IntervalSet,
             LibRoaring,
             StdTreeSet,
-            LibFxHashSet
+            LibFxHashSet,
+            StdVec
         ])
     };
 }
