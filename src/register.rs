@@ -9,7 +9,8 @@ macro_rules! register_set_int {
             LibRoaring,
             StdTreeSet,
             LibFxHashSet,
-            StdVec
+            StdVec,
+            StdLinkedList
         ])
     };
 }
