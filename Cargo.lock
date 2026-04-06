@@ -372,6 +372,7 @@ dependencies = [
  "constcat",
  "proptest",
  "rand 0.10.0",
+ "rbtree",
  "roaring",
  "rust_intervals",
  "rustc-hash",
@@ -507,6 +508,12 @@ checksum = "513962919efc330f829edb2535844d1b912b0fbe2ca165d613e4e8788bb05a5a"
 dependencies = [
  "rand_core 0.9.5",
 ]
+
+[[package]]
+name = "rbtree"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "014d09f9f4dbb178240d78610a8ddbc18c57120b62f182fa859e0dd02b03708c"
 
 [[package]]
 name = "regex-syntax"

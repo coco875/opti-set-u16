@@ -15,7 +15,8 @@ macro_rules! register_set_int {
             StdVec,
             StdVecDicotomie,
             StdLinkedList,
-            LibAvlTree
+            LibAvlTree,
+            LibRBTree
         ])
     };
 }
