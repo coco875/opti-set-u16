@@ -1,4 +1,5 @@
 mod interval;
+mod lib_avl_tree;
 mod lib_bit_set;
 mod lib_fx_hash_set;
 mod lib_fx_hash_set_default_func;
@@ -13,6 +14,7 @@ mod std_vec;
 mod std_vec_dicotomie;
 
 pub use interval::IntervalSet;
+pub use lib_avl_tree::LibAvlTree;
 pub use lib_bit_set::LibBitSet;
 pub use lib_fx_hash_set::LibFxHashSet;
 pub use lib_fx_hash_set_default_func::LibFxHashSetDefaultFunc;

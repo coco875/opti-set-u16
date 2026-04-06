@@ -65,6 +65,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c08606f8c3cbf4ce6ec8e28fb0014a2c086708fe954eaa885384a6165172e7e8"
 
 [[package]]
+name = "avl"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5d6e0051e3dd63723d8070b7c44637a9c9a76a840ce9bd1658c5808338c4b58a"
+
+[[package]]
 name = "bit-set"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -360,6 +366,7 @@ name = "opti-set-int"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "avl",
  "bit-set 0.10.0",
  "clap",
  "constcat",

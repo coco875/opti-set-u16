@@ -14,7 +14,8 @@ macro_rules! register_set_int {
             LibFxHashSetDefaultFunc,
             StdVec,
             StdVecDicotomie,
-            StdLinkedList
+            StdLinkedList,
+            LibAvlTree
         ])
     };
 }
