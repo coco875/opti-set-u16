@@ -10,6 +10,7 @@ macro_rules! register_set_int {
             StdTreeSet,
             LibFxHashSet,
             StdVec,
+            StdVecDicotomie,
             StdLinkedList
         ])
     };

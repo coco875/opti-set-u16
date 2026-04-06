@@ -7,6 +7,7 @@ mod std_hash_set;
 mod std_linked_list;
 mod std_tree_set;
 mod std_vec;
+mod std_vec_dicotomie;
 
 pub use interval::IntervalSet;
 pub use lib_bit_set::LibBitSet;
@@ -17,6 +18,7 @@ pub use std_hash_set::StdHashSet;
 pub use std_linked_list::StdLinkedList;
 pub use std_tree_set::StdTreeSet;
 pub use std_vec::StdVec;
+pub use std_vec_dicotomie::StdVecDicotomie;
 
 pub trait SetInt: 'static {
     fn clear(&mut self);

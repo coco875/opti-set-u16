@@ -24,24 +24,23 @@ impl SetInt for StdVec {
     }
 
     fn insert(&mut self, n: u16) {
-        match self.elements.binary_search(&n) {
-            Ok(_) => {}
-            Err(pos) => self.elements.insert(pos, n),
+        if !self.contains(n) {
+            self.elements.push(n);
         }
     }
 
     fn remove(&mut self, n: u16) -> bool {
-        match self.elements.binary_search(&n) {
-            Ok(pos) => {
-                self.elements.remove(pos);
+        match self.elements.iter().position(|&x| x == n) {
+            Some(pos) => {
+                self.elements.swap_remove(pos);
                 true
             }
-            Err(_) => false,
+            None => false,
         }
     }
 
     fn contains(&self, n: u16) -> bool {
-        self.elements.binary_search(&n).is_ok()
+        self.elements.contains(&n)
     }
 
     fn len(&self) -> usize {
@@ -53,110 +52,33 @@ impl SetInt for StdVec {
     }
 
     fn union_with(&mut self, other: &Self) {
-        let mut result = Vec::with_capacity(self.elements.len() + other.elements.len());
-        let mut i = 0;
-        let mut j = 0;
-
-        while i < self.elements.len() && j < other.elements.len() {
-            let a = self.elements[i];
-            let b = other.elements[j];
-
-            if a < b {
-                result.push(a);
-                i += 1;
-            } else if b < a {
-                result.push(b);
-                j += 1;
-            } else {
-                result.push(a);
-                i += 1;
-                j += 1;
-            }
+        for &v in &other.elements {
+            self.insert(v);
         }
-
-        while i < self.elements.len() {
-            result.push(self.elements[i]);
-            i += 1;
-        }
-
-        while j < other.elements.len() {
-            result.push(other.elements[j]);
-            j += 1;
-        }
-
-        self.elements = result;
     }
 
     fn intersection_with(&mut self, other: &Self) {
-        let mut result = Vec::with_capacity(self.elements.len().min(other.elements.len()));
-        let mut i = 0;
-        let mut j = 0;
-
-        while i < self.elements.len() && j < other.elements.len() {
-            let a = self.elements[i];
-            let b = other.elements[j];
-
-            if a < b {
-                i += 1;
-            } else if b < a {
-                j += 1;
-            } else {
-                result.push(a);
-                i += 1;
-                j += 1;
-            }
-        }
-
-        self.elements = result;
+        self.elements.retain(|v| other.contains(*v));
     }
 
     fn difference_with(&mut self, other: &Self) {
-        let mut result = Vec::with_capacity(self.elements.len());
-        let mut j = 0;
-
-        for &a in &self.elements {
-            while j < other.elements.len() && other.elements[j] < a {
-                j += 1;
-            }
-            if j >= other.elements.len() || other.elements[j] > a {
-                result.push(a);
-            }
-        }
-
-        self.elements = result;
+        self.elements.retain(|v| !other.contains(*v));
     }
 
     fn symmetric_difference_with(&mut self, other: &Self) {
-        let mut result = Vec::with_capacity(self.elements.len() + other.elements.len());
-        let mut i = 0;
-        let mut j = 0;
+        let self_set: std::collections::HashSet<u16> = self.elements.iter().copied().collect();
+        let other_set: std::collections::HashSet<u16> = other.elements.iter().copied().collect();
 
-        while i < self.elements.len() && j < other.elements.len() {
-            let a = self.elements[i];
-            let b = other.elements[j];
-
-            if a < b {
-                result.push(a);
-                i += 1;
-            } else if b < a {
-                result.push(b);
-                j += 1;
-            } else {
-                i += 1;
-                j += 1;
+        self.elements.clear();
+        for &v in &self_set {
+            if !other_set.contains(&v) {
+                self.elements.push(v);
             }
         }
-
-        while i < self.elements.len() {
-            result.push(self.elements[i]);
-            i += 1;
+        for &v in &other_set {
+            if !self_set.contains(&v) {
+                self.elements.push(v);
+            }
         }
-
-        while j < other.elements.len() {
-            result.push(other.elements[j]);
-            j += 1;
-        }
-
-        self.elements = result;
     }
 }
