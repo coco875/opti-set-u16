@@ -9,7 +9,9 @@ macro_rules! register_set_int {
             IntervalSet,
             LibRoaring,
             StdTreeSet,
+            StdTreeSetDefaultFunc,
             LibFxHashSet,
+            LibFxHashSetDefaultFunc,
             StdVec,
             StdVecDicotomie,
             StdLinkedList

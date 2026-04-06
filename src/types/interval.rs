@@ -48,6 +48,9 @@ impl SetInt for IntervalSet {
     }
 
     fn insert(&mut self, n: u16) {
+        if self.contains(n) {
+            return;
+        }
         let new_interval = Interval::new(n, n);
         let mut merged = vec![new_interval];
 
