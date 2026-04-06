@@ -4,6 +4,7 @@ macro_rules! register_set_int {
         $callback!([
             LibBitSet,
             StdHashSet,
+            StdHashSetDefaultFunc,
             LibInterval,
             IntervalSet,
             LibRoaring,
