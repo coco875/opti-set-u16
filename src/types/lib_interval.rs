@@ -53,7 +53,7 @@ impl SetInt for LibInterval {
 
     fn union_with(&mut self, other: &Self) {
         for interval in other.interval_set.iter() {
-            self.interval_set.add(interval.clone());
+            self.interval_set.add(*interval);
         }
     }
 
@@ -63,7 +63,7 @@ impl SetInt for LibInterval {
 
     fn difference_with(&mut self, other: &Self) {
         for interval in other.interval_set.iter() {
-            self.interval_set.remove_interval(interval.clone());
+            self.interval_set.remove_interval(*interval);
         }
     }
 
