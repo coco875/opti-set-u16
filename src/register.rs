@@ -12,6 +12,7 @@ macro_rules! register_set_int {
             LibIdlset,
             StdHashSet,
             StdHashSetDefaultFunc,
+            StdHashSetNoHasher,
             LibInterval,
             LibRangeSetBlaze,
             IntervalSet,
