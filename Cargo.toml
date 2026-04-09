@@ -17,6 +17,7 @@ rustc-hash = "2.1.2"
 avl = "0.8.0"
 rbtree = "0.2.0"
 range-set-blaze = "0.5.0"
+fixedbitset = "0.5.7"
 
 [dev-dependencies]
 proptest = "1.5"
