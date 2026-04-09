@@ -49,6 +49,9 @@ PALETTE = [
     "#90A4AE",
 ]
 
+# Patterns for combining with colors to increase visual uniqueness
+PATTERNS = ["", "////", "\\\\\\\\", "xxxx", "...."]
+
 # ──────────────────────────────────────────────
 # Styling
 # ──────────────────────────────────────────────
@@ -87,6 +90,10 @@ def impl_colors(impl_list):
     """Assign a stable colour to each implementation name."""
     return {impl: PALETTE[i % len(PALETTE)] for i, impl in enumerate(sorted(impl_list))}
 
+def impl_patterns(impl_list):
+    """Assign a stable pattern to each implementation name."""
+    return {impl: PATTERNS[(i // len(PALETTE)) % len(PATTERNS)] for i, impl in enumerate(sorted(impl_list))}
+
 
 def avg(values):
     return sum(values) / len(values) if values else 0.0
@@ -110,11 +117,11 @@ def group_stats(data, key_fn):
 
 
 def bar_chart_with_ci(
-    ax, categories, values, errors, colors, title, xlabel, ylabel, rotate=False, ylim=None
+    ax, categories, values, errors, colors, title, xlabel, ylabel, rotate=False, ylim=None, hatches=None
 ):
     x = np.arange(len(categories))
     bars = ax.bar(
-        x, values, yerr=errors, color=colors, width=0.6, edgecolor=DARK_BG,
+        x, values, yerr=errors, color=colors, hatch=hatches, width=0.6, edgecolor=DARK_BG,
         linewidth=0.8, capsize=4, ecolor=TEXT, error_kw={"alpha": 0.6},
     )
     ax.set_title(title, fontsize=12, fontweight="bold", pad=10)
@@ -155,7 +162,7 @@ def draw_break_marks(ax_top, ax_bottom, d=0.012):
 
 
 def bar_chart_broken_y(
-    fig, categories, values, errors, colors, title, xlabel, ylabel, rotate=False
+    fig, categories, values, errors, colors, title, xlabel, ylabel, rotate=False, hatches=None
 ):
     max_val = max(v + e for v, e in zip(values, errors)) if values else 0
     sorted_vals = sorted(values)
@@ -167,7 +174,7 @@ def bar_chart_broken_y(
         ax = fig.add_subplot(111)
         apply_dark_style(fig, ax)
         bar_chart_with_ci(
-            ax, categories, values, errors, colors, title, xlabel, ylabel, rotate,
+            ax, categories, values, errors, colors, title, xlabel, ylabel, rotate, hatches=hatches
         )
         return
 
@@ -180,11 +187,11 @@ def bar_chart_broken_y(
 
     x = np.arange(len(categories))
     ax_bottom.bar(
-        x, values, yerr=errors, color=colors, width=0.6, edgecolor=DARK_BG,
+        x, values, yerr=errors, color=colors, hatch=hatches, width=0.6, edgecolor=DARK_BG,
         linewidth=0.8, capsize=4, ecolor=TEXT, error_kw={"alpha": 0.6},
     )
     ax_top.bar(
-        x, values, yerr=errors, color=colors, width=0.6, edgecolor=DARK_BG,
+        x, values, yerr=errors, color=colors, hatch=hatches, width=0.6, edgecolor=DARK_BG,
         linewidth=0.8, capsize=4, ecolor=TEXT, error_kw={"alpha": 0.6},
     )
 
@@ -268,6 +275,7 @@ scenarios = sorted({r["scenario"] for r in rows})
 impls = sorted({r["impl"] for r in rows})
 capacities = sorted({r["max_capacity"] for r in rows})
 colors = impl_colors(impls)
+patterns = impl_patterns(impls)
 
 print(
     f"\nLoaded {len(rows):,} rows  |  {len(scenarios)} scenarios  |  {len(impls)} implementations\n"
@@ -278,15 +286,17 @@ print("Generating charts …")
 # GRAPH 1 – Global avg time per implementation
 # ══════════════════════════════════════════════
 global_stats = group_stats(rows, lambda r: r["impl"])
+sorted_impls = sorted(impls, key=lambda i: global_stats[i][0])
 
 fig, ax = plt.subplots(figsize=(max(6, len(impls) * 1.4), 5))
 apply_dark_style(fig, ax)
 bar_chart_with_ci(
     ax,
-    categories=impls,
-    values=[global_stats[i][0] for i in impls],
-    errors=[global_stats[i][1] for i in impls],
-    colors=[colors[i] for i in impls],
+    categories=sorted_impls,
+    values=[global_stats[i][0] for i in sorted_impls],
+    errors=[global_stats[i][1] for i in sorted_impls],
+    colors=[colors[i] for i in sorted_impls],
+    hatches=[patterns[i] for i in sorted_impls],
     title="Global Average Time per Implementation",
     xlabel="Implementation",
     ylabel="Avg Time (cycles)",
@@ -299,10 +309,11 @@ plt.close(fig)
 fig = plt.figure(figsize=(max(6, len(impls) * 1.4), 6))
 bar_chart_broken_y(
     fig,
-    categories=impls,
-    values=[global_stats[i][0] for i in impls],
-    errors=[global_stats[i][1] for i in impls],
-    colors=[colors[i] for i in impls],
+    categories=sorted_impls,
+    values=[global_stats[i][0] for i in sorted_impls],
+    errors=[global_stats[i][1] for i in sorted_impls],
+    colors=[colors[i] for i in sorted_impls],
+    hatches=[patterns[i] for i in sorted_impls],
     title="Global Average Time per Implementation (zoomed)",
     xlabel="Implementation",
     ylabel="Avg Time (cycles)",
@@ -319,16 +330,18 @@ for scenario in scenarios:
     sub = [r for r in rows if r["scenario"] == scenario]
     scen_stats = group_stats(sub, lambda r: r["impl"])
     present = [i for i in impls if i in scen_stats]
+    sorted_present = sorted(present, key=lambda i: scen_stats[i][0])
     safe_name = scenario.replace(" ", "_").replace("/", "-")
 
     fig, ax = plt.subplots(figsize=(max(6, len(present) * 1.4), 5))
     apply_dark_style(fig, ax)
     bar_chart_with_ci(
         ax,
-        categories=present,
-        values=[scen_stats[i][0] for i in present],
-        errors=[scen_stats[i][1] for i in present],
-        colors=[colors[i] for i in present],
+        categories=sorted_present,
+        values=[scen_stats[i][0] for i in sorted_present],
+        errors=[scen_stats[i][1] for i in sorted_present],
+        colors=[colors[i] for i in sorted_present],
+        hatches=[patterns[i] for i in sorted_present],
         title=scenario,
         xlabel="Implementation",
         ylabel="Avg Time (cycles)",
@@ -341,10 +354,11 @@ for scenario in scenarios:
     fig = plt.figure(figsize=(max(6, len(present) * 1.4), 6))
     bar_chart_broken_y(
         fig,
-        categories=present,
-        values=[scen_stats[i][0] for i in present],
-        errors=[scen_stats[i][1] for i in present],
-        colors=[colors[i] for i in present],
+        categories=sorted_present,
+        values=[scen_stats[i][0] for i in sorted_present],
+        errors=[scen_stats[i][1] for i in sorted_present],
+        colors=[colors[i] for i in sorted_present],
+        hatches=[patterns[i] for i in sorted_present],
         title=scenario,
         xlabel="Implementation",
         ylabel="Avg Time (cycles)",
@@ -381,6 +395,7 @@ for scenario in scenarios:
             yerr=[cap_stats[c][1] for c in caps],
             width=width,
             color=colors[impl],
+            hatch=patterns[impl],
             edgecolor=DARK_BG,
             linewidth=0.6,
             label=impl,
@@ -453,6 +468,7 @@ for scenario in scenarios:
                 yerr=[cap_stats[c][1] for c in caps],
                 width=width,
                 color=colors[impl],
+                hatch=patterns[impl],
                 edgecolor=DARK_BG,
                 linewidth=0.6,
                 label=impl,
@@ -504,6 +520,7 @@ for scenario in scenarios:
                 yerr=errs,
                 width=width,
                 color=colors[impl],
+                hatch=patterns[impl],
                 edgecolor=DARK_BG,
                 linewidth=0.6,
                 label=impl,
@@ -517,6 +534,7 @@ for scenario in scenarios:
                 yerr=errs,
                 width=width,
                 color=colors[impl],
+                hatch=patterns[impl],
                 edgecolor=DARK_BG,
                 linewidth=0.6,
                 capsize=3,
