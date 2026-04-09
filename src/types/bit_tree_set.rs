@@ -13,10 +13,7 @@ pub struct BitTreeSet {
 
 impl SetIntConstruct for BitTreeSet {
     fn new() -> Self {
-        Self {
-            root: None,
-            len: 0,
-        }
+        Self { root: None, len: 0 }
     }
 
     fn with_capacity(_capacity: usize) -> Self {
@@ -89,11 +86,7 @@ impl SetInt for BitTreeSet {
         for i in (0..16).rev() {
             if let Some(node) = curr {
                 let bit = (n >> i) & 1;
-                curr = if bit == 0 {
-                    &node.left
-                } else {
-                    &node.right
-                };
+                curr = if bit == 0 { &node.left } else { &node.right };
             } else {
                 return false;
             }
