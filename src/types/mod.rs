@@ -41,6 +41,27 @@ pub trait SetInt: 'static {
     fn intersection_with(&mut self, other: &Self);
     fn difference_with(&mut self, other: &Self);
     fn symmetric_difference_with(&mut self, other: &Self);
+
+    fn to_bytes(&self) -> [u8; 8192] {
+        let mut bytes = [0; 8192];
+        for n in self.iter() {
+            bytes[(n / 8) as usize] |= 1 << (n % 8);
+        }
+        bytes
+    }
+
+    fn from_bytes(&mut self, bytes: &[u8]) {
+        self.clear();
+        for (i, &byte) in bytes.iter().enumerate() {
+            if byte != 0 {
+                for j in 0..8 {
+                    if byte & (1 << j) != 0 {
+                        self.insert((i * 8 + j) as u16);
+                    }
+                }
+            }
+        }
+    }
 }
 
 pub trait SetIntConstruct: SetInt {

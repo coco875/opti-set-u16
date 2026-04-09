@@ -36,7 +36,9 @@ macro_rules! register_scenario {
             UnionScenario,
             IntersectionScenario,
             DifferenceScenario,
-            SymmetricDifferenceScenario
+            SymmetricDifferenceScenario,
+            SerializeScenario,
+            DeserializeScenario
         ])
     };
 }

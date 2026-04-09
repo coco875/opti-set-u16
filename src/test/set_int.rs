@@ -24,6 +24,8 @@ pub trait DynSetInt {
     fn contains(&self, n: u16) -> bool;
     fn len(&self) -> usize;
     fn iter(&self) -> Box<dyn Iterator<Item = u16> + '_>;
+    fn to_bytes(&self) -> [u8; 8192];
+    fn from_bytes(&mut self, bytes: &[u8]);
     fn union_with(&mut self, other: &dyn DynSetInt) -> Result<(), TypeError>;
     fn intersection_with(&mut self, other: &dyn DynSetInt) -> Result<(), TypeError>;
     fn difference_with(&mut self, other: &dyn DynSetInt) -> Result<(), TypeError>;
@@ -52,6 +54,14 @@ impl<T: SetInt> DynSetInt for DynSetIntStruct<T> {
     }
     fn iter(&self) -> Box<dyn Iterator<Item = u16> + '_> {
         self.bit_set.iter()
+    }
+
+    fn to_bytes(&self) -> [u8; 8192] {
+        self.bit_set.to_bytes()
+    }
+
+    fn from_bytes(&mut self, bytes: &[u8]) {
+        self.bit_set.from_bytes(bytes);
     }
 
     fn union_with(&mut self, other: &dyn DynSetInt) -> Result<(), TypeError> {
@@ -255,6 +265,28 @@ proptest! {
             let expected: std::collections::HashSet<u16> = refs.iter().copied().collect();
             let iter_result: std::collections::HashSet<u16> = set.iter().collect();
             prop_assert_eq!(iter_result, expected, "iter result mismatch in {name}", name = name);
+        }
+    }
+
+    #[test]
+    fn proptest_to_bytes_from_bytes(refs in proptest::collection::vec(any::<u16>(), 0..100)) {
+        for (set_builder, name) in all_set!() {
+            let mut set1 = set_builder();
+            for &v in &refs {
+                set1.insert(v);
+            }
+
+            let bytes = set1.to_bytes();
+
+            let mut set2 = set_builder();
+            set2.from_bytes(&bytes);
+
+            let expected: std::collections::HashSet<u16> = refs.iter().copied().collect();
+            prop_assert_eq!(set2.len(), expected.len(), "len mismatch after from_bytes in {name}", name=name);
+
+            for v in expected {
+                prop_assert!(set2.contains(v), "missing element after from_bytes in {name}", name=name);
+            }
         }
     }
 }

@@ -159,9 +159,10 @@ fn main() -> Result<()> {
             scenario.iter().enumerate()
         {
             if let Some(ref filters) = filter_scenario
-                && !filters.iter().any(|f| scenario_name.contains(f.as_str())) {
-                    continue;
-                }
+                && !filters.iter().any(|f| scenario_name.contains(f.as_str()))
+            {
+                continue;
+            }
             for cap in min_bit..=max_bit {
                 for fill in min_fill_bit..=max_fill_bit.min(cap) {
                     for data in min_data_bit..=max_data_bit.min(cap) {
