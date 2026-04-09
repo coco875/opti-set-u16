@@ -9,6 +9,7 @@ macro_rules! register_set_int {
             LibBitSet,
             LibBitVec,
             LibFixedBitSet,
+            LibIdlset,
             StdHashSet,
             StdHashSetDefaultFunc,
             LibInterval,
