@@ -7,6 +7,7 @@ macro_rules! register_set_int {
             CustomBitSet,
             BitTreeSet,
             LibBitSet,
+            LibBitVec,
             LibFixedBitSet,
             StdHashSet,
             StdHashSetDefaultFunc,

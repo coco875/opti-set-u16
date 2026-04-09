@@ -18,6 +18,7 @@ avl = "0.8.0"
 rbtree = "0.2.0"
 range-set-blaze = "0.5.0"
 fixedbitset = "0.5.7"
+bitvec = "1.0.1"
 
 [dev-dependencies]
 proptest = "1.5"
