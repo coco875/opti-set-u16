@@ -2,6 +2,8 @@
 macro_rules! register_set_int {
     ($callback:ident) => {
         $callback!([
+            SimdBitSet,
+            CustomBitSet,
             BitTreeSet,
             LibBitSet,
             StdHashSet,

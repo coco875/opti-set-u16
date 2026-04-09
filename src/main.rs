@@ -1,3 +1,4 @@
+#![feature(portable_simd)]
 mod macros;
 mod register;
 mod scenario;
