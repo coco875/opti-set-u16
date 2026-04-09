@@ -1,3 +1,4 @@
+mod bit_tree_set;
 mod interval;
 mod lib_avl_tree;
 mod lib_bit_set;
@@ -14,6 +15,7 @@ mod std_tree_set_default_func;
 mod std_vec;
 mod std_vec_dicotomie;
 
+pub use bit_tree_set::BitTreeSet;
 pub use interval::IntervalSet;
 pub use lib_avl_tree::LibAvlTree;
 pub use lib_bit_set::LibBitSet;
