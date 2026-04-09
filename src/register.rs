@@ -17,6 +17,7 @@ macro_rules! register_set_int {
             LibRangeSetBlaze,
             IntervalSet,
             LibRoaring,
+            LibCRoaring,
             StdTreeSet,
             StdTreeSetDefaultFunc,
             LibFxHashSet,
