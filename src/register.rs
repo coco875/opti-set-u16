@@ -10,6 +10,7 @@ macro_rules! register_set_int {
             StdHashSet,
             StdHashSetDefaultFunc,
             LibInterval,
+            LibRangeSetBlaze,
             IntervalSet,
             LibRoaring,
             StdTreeSet,
