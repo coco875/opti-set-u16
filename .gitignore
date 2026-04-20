@@ -3,5 +3,5 @@ output.csv
 proptest-regressions
 stat/*.png
 stat/*/*
-benchmark_charts/
+benchmark_charts*/
 .DS_Store
