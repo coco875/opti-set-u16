@@ -60,10 +60,6 @@ struct Config {
     sample: Option<u64>,
     min_bit: Option<u32>,
     max_bit: Option<u32>,
-    min_fill_bit: Option<u32>,
-    max_fill_bit: Option<u32>,
-    min_data_bit: Option<u32>,
-    max_data_bit: Option<u32>,
     filter_scenario: Option<Vec<String>>,
 }
 
@@ -78,10 +74,6 @@ impl Config {
             sample: cli.sample.or(self.sample),
             min_bit: cli.min_bit.or(self.min_bit),
             max_bit: cli.max_bit.or(self.max_bit),
-            min_fill_bit: cli.min_fill_bit.or(self.min_fill_bit),
-            max_fill_bit: cli.max_fill_bit.or(self.max_fill_bit),
-            min_data_bit: cli.min_data_bit.or(self.min_data_bit),
-            max_data_bit: cli.max_data_bit.or(self.max_data_bit),
             filter_scenario: match (cli.filter_scenario, self.filter_scenario) {
                 (Some(cli_filters), _) => Some(cli_filters),
                 (None, Some(config_filters)) => Some(config_filters),
@@ -132,10 +124,6 @@ fn main() -> Result<()> {
     let sample = config.sample.unwrap_or(10);
     let min_bit = config.min_bit.unwrap_or(4);
     let max_bit = config.max_bit.unwrap_or(16);
-    let min_fill_bit = config.min_fill_bit.unwrap_or(min_bit);
-    let max_fill_bit = config.max_fill_bit.unwrap_or(max_bit);
-    let min_data_bit = config.min_data_bit.unwrap_or(min_bit);
-    let max_data_bit = config.max_data_bit.unwrap_or(max_bit);
     let filter_scenario = config.filter_scenario;
 
     let file = OpenOptions::new()
@@ -164,16 +152,16 @@ fn main() -> Result<()> {
             {
                 continue;
             }
-            for cap in min_bit..=max_bit {
-                for fill in min_fill_bit..=max_fill_bit.min(cap) {
-                    for data in min_data_bit..=max_data_bit.min(cap) {
-                        all_run.push(RunId::new(
-                            scenario_id as u16,
-                            cap as u8,
-                            fill as u8,
-                            data as u8,
-                            seed,
-                        ));
+                for cap in min_bit..=max_bit {
+                    for fill in [0, cap - 2, cap - 1, cap] {
+                        for data in [0, cap - 2, cap - 1, cap] {
+                            all_run.push(RunId::new(
+                                scenario_id as u16,
+                                cap as u8,
+                                fill as u8,
+                                data as u8,
+                                seed,
+                            ));
                     }
                 }
             }

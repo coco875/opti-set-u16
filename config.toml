@@ -9,7 +9,3 @@ filter_scenario = [
 sample = 20
 min_bit = 5
 max_bit = 11
-min_fill_bit = 5
-max_fill_bit = 11
-min_data_bit = 5
-max_data_bit = 11
