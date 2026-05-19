@@ -22,6 +22,23 @@ impl Interval {
     fn merge(&self, other: &Interval) -> Interval {
         Interval::new(self.start.min(other.start), self.end.max(other.end))
     }
+
+    // test add by Max
+    fn beforeP(&self, other: &Interval) -> bool{
+        self.end < other.start
+    }
+
+    fn meets(&self, other: &Interval) -> bool{
+        self.start < self.end && self.end == other.start && other.start < other.end
+    }
+
+    fn starts(&self, other: &Interval) -> bool {
+        self.start == other.start && self.end < other.end
+    }
+
+    fn containedByP(&self, other: &Interval) -> bool{
+        self.start > other.start && self.end < other.end 
+    }
 }
 
 pub struct IntervalSet {
