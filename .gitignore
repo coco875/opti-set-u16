@@ -5,3 +5,4 @@ stat/*.png
 stat/*/*
 benchmark_charts*/
 .DS_Store
+data.csv

@@ -1,5 +1,5 @@
 use super::{SetInt, SetIntConstruct};
-use std::simd::{u64x8, Simd};
+use std::simd::{Simd, u64x8};
 
 pub struct SimdBitSet {
     bits: [u64x8; 128], // 128 * 8 * 64 = 65536 bits

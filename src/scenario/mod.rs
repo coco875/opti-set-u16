@@ -49,7 +49,7 @@ pub trait ScenarioContructor: Scenario {
     /// - `fill_quantity`: number of elements to pre-fill the set with before running the task
     /// - `data_quantity`: number of elements to use as input data for the task
     /// - `seed`: random seed for reproducibility
-    fn new(capacity: u16, fill_quantity: u16, data_quantity: u16, seed: u64) -> Self
+    fn new(capacity: u16, fill_quantity: u16, data_quantity: u16, fill_data: &[u16]) -> Self
     where
         Self: Sized;
 }
@@ -60,13 +60,14 @@ fn fill_set<T: SetInt>(bit_set: &mut T, indices: &[u16]) {
     }
 }
 
-pub type ScenarioBuilder = fn(u16, u16, u16, u64) -> Box<dyn Scenario>;
+pub type ScenarioBuilder = fn(u16, u16, u16, &[u16]) -> Box<dyn Scenario>;
 
-fn generate_indices(capacity: u16, count: u16, seed: u64) -> Vec<u16> {
+pub fn generate_data(fill_max: u16, count: u32, seed: u64) -> Box<[u16]> {
     let mut rng = SmallRng::seed_from_u64(seed);
-    let count = count as usize;
-    let mut indices: Vec<u16> = (0..capacity).collect();
-    indices.shuffle(&mut rng);
-    indices.truncate(count);
-    indices
+    let mut data = Vec::with_capacity(fill_max as usize);
+    for _ in 0..count {
+        let value = rng.next_u32() as f64 / u32::MAX as f64 * fill_max as f64;
+        data.push(value as u16);
+    }
+    data.into_boxed_slice()
 }

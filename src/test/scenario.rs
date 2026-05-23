@@ -8,7 +8,7 @@ use crate::{
 #[test]
 fn test_all_scenario() {
     for (scenario_builder, _, _) in all_scenarios!() {
-        let mut sce = scenario_builder(0, 0, 0, 0);
+        let mut sce = scenario_builder(0, 0, 0, &Vec::from(&[0u16]).into_boxed_slice());
 
         sce.as_mut().run();
     }

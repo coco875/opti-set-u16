@@ -7,6 +7,7 @@ mod test;
 mod timer;
 mod types;
 
+use std::collections::HashMap;
 use std::fs::OpenOptions;
 use std::io::IsTerminal;
 use std::io::stderr;
@@ -23,6 +24,7 @@ use std::io::BufWriter;
 use std::io::Write;
 
 use rand::prelude::*;
+use scenario::generate_data;
 
 #[derive(Parser)]
 #[command(name = "opti-set-int", about = "Benchmark integer set implementations")]
@@ -60,10 +62,6 @@ struct Config {
     sample: Option<u64>,
     min_bit: Option<u32>,
     max_bit: Option<u32>,
-    min_fill_bit: Option<u32>,
-    max_fill_bit: Option<u32>,
-    min_data_bit: Option<u32>,
-    max_data_bit: Option<u32>,
     filter_scenario: Option<Vec<String>>,
 }
 
@@ -78,10 +76,6 @@ impl Config {
             sample: cli.sample.or(self.sample),
             min_bit: cli.min_bit.or(self.min_bit),
             max_bit: cli.max_bit.or(self.max_bit),
-            min_fill_bit: cli.min_fill_bit.or(self.min_fill_bit),
-            max_fill_bit: cli.max_fill_bit.or(self.max_fill_bit),
-            min_data_bit: cli.min_data_bit.or(self.min_data_bit),
-            max_data_bit: cli.max_data_bit.or(self.max_data_bit),
             filter_scenario: match (cli.filter_scenario, self.filter_scenario) {
                 (Some(cli_filters), _) => Some(cli_filters),
                 (None, Some(config_filters)) => Some(config_filters),
@@ -132,10 +126,6 @@ fn main() -> Result<()> {
     let sample = config.sample.unwrap_or(10);
     let min_bit = config.min_bit.unwrap_or(4);
     let max_bit = config.max_bit.unwrap_or(16);
-    let min_fill_bit = config.min_fill_bit.unwrap_or(min_bit);
-    let max_fill_bit = config.max_fill_bit.unwrap_or(max_bit);
-    let min_data_bit = config.min_data_bit.unwrap_or(min_bit);
-    let max_data_bit = config.max_data_bit.unwrap_or(max_bit);
     let filter_scenario = config.filter_scenario;
 
     let file = OpenOptions::new()
@@ -154,31 +144,62 @@ fn main() -> Result<()> {
     let mut all_run: Vec<_> = vec![];
     let scenario = all_scenarios!();
 
-    let mut seed = rng.next_u64();
-    for _ in 0..sample {
-        for (scenario_id, &(_scenario_builder, scenario_name, _type_name)) in
-            scenario.iter().enumerate()
-        {
-            if let Some(ref filters) = filter_scenario
-                && !filters.iter().any(|f| scenario_name.contains(f.as_str()))
+    let mut input_data = HashMap::new();
+
+    {
+        let file = OpenOptions::new()
+            .create(true)
+            .truncate(true)
+            .write(true)
+            .open("data.csv")?;
+        let mut csv_data_writer = BufWriter::new(file);
+        writeln!(&mut csv_data_writer, "seed, capacity, data")?;
+
+        let mut seed = rng.next_u64();
+        for cap_bit in min_bit..=max_bit {
+            let cap = ((1u32 << cap_bit) - 1) as u16;
+            // how much we need to fill entering data (two time the max capacity because of interesection)
+            let fill_data = (1u32 << (cap_bit + 1)) + 1;
+            let data = generate_data(cap, fill_data, seed);
+            writeln!(&mut csv_data_writer, "{seed}, {cap}, \"{:?}\"", data)?;
+
+            input_data.insert((seed, cap), data);
+        }
+        for _ in 0..sample {
+            for (scenario_id, &(_scenario_builder, scenario_name, _type_name)) in
+                scenario.iter().enumerate()
             {
-                continue;
-            }
-            for cap in min_bit..=max_bit {
-                for fill in min_fill_bit..=max_fill_bit.min(cap) {
-                    for data in min_data_bit..=max_data_bit.min(cap) {
-                        all_run.push(RunId::new(
-                            scenario_id as u16,
-                            cap as u8,
-                            fill as u8,
-                            data as u8,
-                            seed,
-                        ));
+                if let Some(ref filters) = filter_scenario
+                    && !filters.iter().any(|f| scenario_name.contains(f.as_str()))
+                {
+                    continue;
+                }
+                for cap in min_bit..=max_bit {
+                    for fill in [0, cap - 2, cap - 1, cap] {
+                        for data in [0, cap - 2, cap - 1, cap] {
+                            all_run.push(RunId::new(
+                                scenario_id as u16,
+                                cap as u8,
+                                fill as u8,
+                                data as u8,
+                                seed,
+                            ));
+                        }
                     }
                 }
             }
+            seed = rng.next_u64();
+            for cap_bit in min_bit..=max_bit {
+                let cap = ((1u32 << cap_bit) - 1) as u16;
+                // how much we need to fill entering data (two time the max capacity because of interesection)
+                let fill_data = ((1u32 << (cap_bit + 1)) - 1) + 1;
+                let data = generate_data(cap, fill_data, seed);
+                writeln!(&mut csv_data_writer, "{seed}, {cap}, \"{:?}\"", data)?;
+
+                input_data.insert((seed, cap), data);
+            }
         }
-        seed = rng.next_u64();
+        csv_data_writer.flush()?;
     }
     println!("run {} config", all_run.len());
 
@@ -212,7 +233,9 @@ fn main() -> Result<()> {
         let fill = ((1u32 << fill_bit) - 1) as u16;
         let data = ((1u32 << data_bit) - 1) as u16;
 
-        let mut sce = scenario_builder(cap, fill, data, seed);
+        let fill_data = input_data.get(&(seed, cap)).expect("data not generated");
+
+        let mut sce = scenario_builder(cap, fill, data, fill_data);
         let time = sce.run();
         writeln!(
             &mut buf_writer,

@@ -1,6 +1,6 @@
 use super::{SetInt, SetIntConstruct};
-use idlset::v2::IDLBitRange;
 use idlset::AndNot;
+use idlset::v2::IDLBitRange;
 
 pub struct LibIdlset {
     set: IDLBitRange,

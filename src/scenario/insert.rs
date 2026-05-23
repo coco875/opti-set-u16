@@ -1,4 +1,4 @@
-use super::{Scenario, ScenarioContructor, generate_indices};
+use super::{Scenario, ScenarioContructor, fill_set};
 use crate::types::{SetInt, SetIntConstruct};
 
 pub struct InsertScenario<T: SetInt> {
@@ -7,12 +7,15 @@ pub struct InsertScenario<T: SetInt> {
 }
 
 impl<T: SetIntConstruct> ScenarioContructor for InsertScenario<T> {
-    fn new(capacity: u16, _fill_quantity: u16, data_quantity: u16, seed: u64) -> Self {
-        let indices = generate_indices(capacity, data_quantity, seed);
-        Self {
-            bit_set: T::with_capacity(capacity as usize),
-            indices,
-        }
+    fn new(capacity: u16, fill_quantity: u16, data_quantity: u16, fill_data: &[u16]) -> Self {
+        let fill_indices = &fill_data[0..fill_quantity as usize];
+
+        let indices = Vec::from(
+            &fill_data[fill_quantity as usize..(fill_quantity as usize + data_quantity as usize)],
+        );
+        let mut bit_set = T::with_capacity(capacity as usize);
+        fill_set(&mut bit_set, fill_indices);
+        Self { bit_set, indices }
     }
 }
 
