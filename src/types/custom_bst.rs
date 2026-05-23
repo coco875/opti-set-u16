@@ -90,15 +90,12 @@ impl BinarySearchTree {
                     return Self::remove_node(&mut n.right, value);
                 }
 
-                // 🔥 Trouvé !
                 match (n.left.take(), n.right.take()) {
 
-                    // 1️⃣ feuille
                     (None, None) => {
                         *node = None;
                     }
 
-                    // 2️⃣ un seul enfant
                     (Some(left), None) => {
                         *node = Some(left);
                     }
@@ -106,7 +103,6 @@ impl BinarySearchTree {
                         *node = Some(right);
                     }
 
-                    // 3️⃣ deux enfants
                     (Some(left), Some(right)) => {
                         let mut right_opt = Some(right);
 
