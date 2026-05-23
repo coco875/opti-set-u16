@@ -27,7 +27,8 @@ macro_rules! register_set_int {
             StdLinkedList,
             LibAvlTree,
             LibRBTree,
-            BinarySearchTree
+            BinarySearchTree,
+            IntervalResourceSet
         ])
     };
 }
