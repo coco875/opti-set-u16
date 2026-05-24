@@ -26,7 +26,9 @@ macro_rules! register_set_int {
             StdVecDicotomie,
             StdLinkedList,
             LibAvlTree,
-            LibRBTree
+            LibRBTree,
+            BinarySearchTree,
+            IntervalResourceSet
         ])
     };
 }
