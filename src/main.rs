@@ -161,7 +161,11 @@ fn main() -> Result<()> {
             // how much we need to fill entering data (two time the max capacity because of interesection)
             let fill_data = (1u32 << (cap_bit + 1)) + 1;
             let data = generate_data(cap, fill_data, seed);
-            writeln!(&mut csv_data_writer, "{seed}, {cap}, \"{:?}\"", data)?;
+            writeln!(
+                &mut csv_data_writer,
+                "{seed}, {cap}, \"{}\"",
+                format!("{:?}", data).replace(",", ";")
+            )?;
 
             input_data.insert((seed, cap), data);
         }
@@ -194,7 +198,11 @@ fn main() -> Result<()> {
                 // how much we need to fill entering data (two time the max capacity because of interesection)
                 let fill_data = ((1u32 << (cap_bit + 1)) - 1) + 1;
                 let data = generate_data(cap, fill_data, seed);
-                writeln!(&mut csv_data_writer, "{seed}, {cap}, \"{:?}\"", data)?;
+                writeln!(
+                    &mut csv_data_writer,
+                    "{seed}, {cap}, \"{}\"",
+                    format!("{:?}", data).replace(",", ";")
+                )?;
 
                 input_data.insert((seed, cap), data);
             }
