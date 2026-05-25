@@ -2,7 +2,6 @@ import polars as pl
 from plotnine import *
 import os
 import re
-import pandas as pd
 
 def calculate_sortedness(data_str):
     elements = [int(x) for x in re.findall(r'\d+', str(data_str))]
@@ -27,18 +26,14 @@ def main():
         pl.col("seed").cast(pl.String)
     )
     
-    pandas_df = df.select(["seed", "capacity", "sortedness"]).to_pandas()
-    
-    # Sort capacities numerically
-    sorted_capacities = sorted(pandas_df['capacity'].unique())
-    # Create categorical column with correct integer ordering
-    pandas_df['capacity_cat'] = pd.Categorical(pandas_df['capacity'], categories=sorted_capacities, ordered=True)
+    # Select only what we need, keeping it as a Polars DataFrame
+    df_plot = df.select(["seed", "capacity", "sortedness"])
     
     os.makedirs("stat", exist_ok=True)
     
     # GRAPH 1: Facet by seed (one graph per seed)
     p_seeds = (
-        ggplot(pandas_df, aes(x='capacity_cat', y='sortedness', fill='capacity_cat')) +
+        ggplot(df_plot, aes(x='factor(capacity)', y='sortedness', fill='factor(capacity)')) +
         geom_boxplot() +
         facet_wrap('~ seed', labeller='label_both', ncol=4) +
         labs(title="Sortedness Distribution by Capacity (One Graph per Seed)", 
@@ -52,7 +47,7 @@ def main():
 
     # GRAPH 2: All seeds combined (Average / overall distribution)
     p_all = (
-        ggplot(pandas_df, aes(x='capacity_cat', y='sortedness', fill='capacity_cat')) +
+        ggplot(df_plot, aes(x='factor(capacity)', y='sortedness', fill='factor(capacity)')) +
         geom_boxplot() +
         labs(title="Sortedness Distribution by Capacity (All Seeds Combined)", 
              x="Capacity", 
