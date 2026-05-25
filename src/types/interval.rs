@@ -25,240 +25,8 @@ impl Interval {
         Interval::new(self.start.min(other.start), self.end.max(other.end))
     }
 
-    // test add by Max
-    fn beforeP(&self, other: &Interval) -> bool{
-        self.end < other.start
-    }
-
-    fn meets(&self, other: &Interval) -> bool{
-        self.start < self.end && self.end == other.start && other.start < other.end
-    }
-
-    fn starts(&self, other: &Interval) -> bool {
-        self.start == other.start && self.end < other.end
-    }
-
-    fn containedByP(&self, other: &Interval) -> bool{
-        self.start > other.start && self.end < other.end 
-    }
-
-    fn finishes(&self, other: &Interval) -> bool{
-        self.start > other.start && self.end == other.end
-    }
-
-    fn equalP(&self, other: &Interval) -> bool{
-        self.start == other.start && self.end == other.end
-    }
-
-    fn finishedBy(&self, other: &Interval) -> bool {
-        self.start < other.start && self.end == other.end
-    }
-
-    fn containsP(&self, other: &Interval) -> bool {
-        self.start < other.start && self.end > other.end
-    }
-
-    fn startedBy(&self, other: &Interval) -> bool{
-        self.start == other.start && self.end > other.end
-    }
-
-    fn overlappedBy(&self, other: &Interval) -> bool{
-        self.start > other.start && self.start < other.end && self.end > other.end 
-    }
-
-    fn metBy(&self, other: &Interval) -> bool{
-        self.start == other.end && other.start < other.end && self.end > self.start
-    }
-
-    fn afterP(&self, other: &Interval) -> bool{
-        self.start >  other.end
-    }
-
-    fn fstEmpty(&self, other: &Interval) -> bool{
-        // self.empt
-        false
-    }
  }
 
-
-#[cfg(test)]
-mod tests {
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
-    use super::*;
-
-    #[test]
-    fn test_beforeP(){
-        let a = Interval::new(0,2);
-        let b = Interval::new(3,4);
-        let c = Interval::new(3,3);
-        let d = Interval::new(2,2);
-        
-        assert_eq!(a.beforeP(&b), true);        
-        assert_eq!(a.beforeP(&c), true);        
-        assert_eq!(d.beforeP(&b), true);        
-        assert_eq!(d.beforeP(&c), true);        
-        assert_eq!(a.beforeP(&d), false);        
-
-    }
-
-
-
-    #[test]
-    fn test_meets(){
-        let a = Interval::new(0,2);
-        let b = Interval::new(2,3);
-        let c = Interval::new(1,2);
-        let d = Interval::new(2,2);
-        
-        assert_eq!(a.meets(&b), true);        
-        assert_eq!(a.meets(&c), false);        
-        assert_eq!(a.meets(&d), false);        
-        
-    }
-  
-    #[test]
-    fn test_overlaps(){
-        let a = Interval::new(0,2);
-        let b = Interval::new(1,2);
-        let c = Interval::new(1,3);
-        
-        assert_eq!(a.overlaps(&b), false);        
-        assert_eq!(a.overlaps(&c), true);        
-        
-    }  
-
-    
-    #[test]
-    fn test_starts(){
-        let a = Interval::new(0,2);
-        let b = Interval::new(0,0);
-        let c = Interval::new(0,5);
-        let d = Interval::new(1,5);
-        
-        assert_eq!(a.starts(&c), true);        
-        assert_eq!(a.starts(&b), false);        
-        assert_eq!(a.starts(&d), false);        
-        assert_eq!(b.starts(&c), true);        
-        
-    }
-
-    #[test]
-    fn test_containedByP(){
-        let a = Interval::new(0,5);
-        let b = Interval::new(1,3);
-        let c = Interval::new(0,5);
-        let d = Interval::new(1,1);
-        
-        assert_eq!(b.containedByP(&a), true);        
-        assert_eq!(c.containedByP(&a), false);        
-        assert_eq!(d.containedByP(&a), true);        
-        
-    }
-
-    #[test]
-    fn test_finishes(){
-        let a = Interval::new(1,5);
-        let b = Interval::new(1,3);
-        let c = Interval::new(0,5);
-        let d = Interval::new(5,5);
-        
-        assert_eq!(a.finishes(&b), false);        
-        assert_eq!(a.finishes(&c), true);        
-        assert_eq!(d.finishes(&c), true);        
-        
-    }   
-
-    #[test]
-    fn test_equalP(){
-        let a = Interval::new(0,5);
-        let b = Interval::new(1,3);
-        let c = Interval::new(0,5);
-        
-        assert_eq!(a.equalP(&b), false);        
-        assert_eq!(a.equalP(&c), true);        
-        
-    }
-
-    #[test]
-    fn test_finishedBy(){
-        let a = Interval::new(0,5);
-        let b = Interval::new(1,5);
-        let c = Interval::new(5,5);
-        let d = Interval::new(5,7);
-        
-        assert_eq!(a.finishedBy(&b), true);        
-        assert_eq!(a.finishedBy(&c), true);        
-        assert_eq!(a.finishedBy(&d), false);        
-        
-    }
-    #[test]
-    fn test_containsP(){
-        let a = Interval::new(0,5);
-        let b = Interval::new(1,3);
-        let c = Interval::new(0,5);
-        let d = Interval::new(3,3);
-        
-        assert_eq!(a.containsP(&b), true);        
-        assert_eq!(a.containsP(&c), false);        
-        assert_eq!(a.containsP(&d), true);        
-        
-    }
-
-    #[test]
-    fn test_startedBy(){
-        let a = Interval::new(0,5);
-        let b = Interval::new(0,3);
-        let c = Interval::new(0,5);
-        let d = Interval::new(0,0);
-        
-        assert_eq!(a.startedBy(&b), true);        
-        assert_eq!(a.startedBy(&c), false);        
-        assert_eq!(a.startedBy(&d), true);        
-        
-    }
-
-    #[test]
-    fn test_overlappedBy(){
-        let a = Interval::new(1,6);
-        let b = Interval::new(0,5);
-        let c = Interval::new(2,7);
-        let d = Interval::new(0,7);
-        
-        assert_eq!(a.overlappedBy(&b), true);        
-        assert_eq!(a.overlappedBy(&c), false);        
-        assert_eq!(a.overlappedBy(&d), false);        
-        
-    }
-
-    #[test]
-    fn test_metBy(){
-        let a = Interval::new(5,10);
-        let b = Interval::new(1,5);
-        let c = Interval::new(5,5);
-        let d = Interval::new(1,3);
-        
-        assert_eq!(a.metBy(&b), true);        
-        assert_eq!(a.metBy(&c), false);        
-        assert_eq!(a.metBy(&d), false);        
-        assert_eq!(c.metBy(&b), false);        
-        
-    }
-
-    #[test]
-    fn test_afterP(){
-        let a = Interval::new(5,10);
-        let b = Interval::new(1,4);
-        let c = Interval::new(4,4);
-        let d = Interval::new(5,5);
-        
-        assert_eq!(a.afterP(&b), true);        
-        assert_eq!(a.afterP(&c), true);        
-        assert_eq!(a.afterP(&d), false);        
-        assert_eq!(d.afterP(&c), true);        
-        assert_eq!(d.afterP(&b), true);        
-        
-    }
-}
 
 #[derive(Clone, Debug)]
 pub struct IntervalSet {
@@ -569,6 +337,7 @@ mod tests_intervalSet {
         aa.intersection_with(&b);
         assert_eq!(aa.len(), 0);
 
+        let a = IntervalSet { intervals: vec![Interval{ start: 0, end: 16 }] };
         let b = IntervalSet { intervals: vec![Interval{ start: 32, end: 32 }] };
         let mut aa = a.clone();
         aa.union_with(&b);
@@ -586,6 +355,7 @@ mod tests_intervalSet {
         aa.intersection_with(&b);
         assert_eq!(aa.len(), 0);
 
+        let a = IntervalSet { intervals: vec![Interval{ start: 16, end: 16 }] };
         let b = IntervalSet { intervals: vec![Interval{ start: 32, end: 32 }] };
         let mut aa = a.clone();
         aa.union_with(&b);
@@ -811,6 +581,7 @@ mod tests_intervalSet {
         assert_eq!(aa.len(), 0);
 
         let a = IntervalSet { intervals: vec![Interval{ start: 20, end: 20 }] };
+        let b = IntervalSet { intervals: vec![Interval{ start: 0, end: 10 }] };
         let mut aa = a.clone();
         aa.union_with(&b);
         assert_eq!(aa.len(), 12);
@@ -828,6 +599,7 @@ mod tests_intervalSet {
         assert_eq!(aa.len(), 0);
      
         let a = IntervalSet { intervals: vec![Interval{ start: 20, end: 20 }] };
+        let b = IntervalSet { intervals: vec![Interval{ start: 0, end: 0 }] };
         let mut aa = a.clone();
         aa.union_with(&b);
         assert_eq!(aa.len(), 2);
