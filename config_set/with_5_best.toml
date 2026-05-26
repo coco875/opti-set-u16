@@ -1,0 +1,18 @@
+filter_scenario = [
+  "MixedScenario",
+  "IterScenario",
+  "UnionScenario",
+  "IntersectionScenario",
+  "DifferenceScenario",
+  "SymmetricDifferenceScenario",
+]
+sample = 20
+min_bit = 5
+max_bit = 16
+filter_implementation = [
+  "AsmCustomBitSet",
+  "SimdBitSet",
+  "CustomBitSet",
+  "LibBitSet",
+  "LibFixedBitSet",
+]
