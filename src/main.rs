@@ -266,7 +266,6 @@ fn main() -> Result<()> {
             "{sceario_name}, {type_name}, {cap}, {fill}, {data}, {seed}, {time}"
         )?;
     }
-    println!("Hello, world!");
     buf_writer.flush()?;
     Ok(())
 }
