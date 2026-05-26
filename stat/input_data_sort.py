@@ -1,7 +1,8 @@
 import polars as pl
 from plotnine import *
-import os
 import re
+from pathlib import Path
+from common import dark_theme, save_plot
 
 def calculate_sortedness(data_str):
     elements = [int(x) for x in re.findall(r'\d+', str(data_str))]
@@ -29,7 +30,7 @@ def main():
     # Select only what we need, keeping it as a Polars DataFrame
     df_plot = df.select(["seed", "capacity", "sortedness"])
     
-    os.makedirs("stat", exist_ok=True)
+    output_dir = Path("benchmark_charts/input_analysis")
     
     # GRAPH 1: Facet by seed (one graph per seed)
     p_seeds = (
@@ -39,11 +40,10 @@ def main():
         labs(title="Sortedness Distribution by Capacity (One Graph per Seed)", 
              x="Capacity", 
              y="Proportion of sorted adjacent pairs") +
-        theme_minimal() +
-        theme(figure_size=(20, 16), legend_position="none", axis_text_x=element_text(rotation=45, hjust=1))
+        dark_theme((20, 16)) +
+        theme(legend_position="none", axis_text_x=element_text(angle=45, hjust=1))
     )
-    p_seeds.save("stat/sortedness_by_capacity_per_seed.png", dpi=300)
-    print("Graph saved to stat/sortedness_by_capacity_per_seed.png")
+    save_plot(p_seeds, output_dir / "sortedness_by_capacity_per_seed.png", width=20, height=16)
 
     # GRAPH 2: All seeds combined (Average / overall distribution)
     p_all = (
@@ -52,11 +52,10 @@ def main():
         labs(title="Sortedness Distribution by Capacity (All Seeds Combined)", 
              x="Capacity", 
              y="Proportion of sorted adjacent pairs") +
-        theme_minimal() +
-        theme(figure_size=(10, 6), legend_position="none", axis_text_x=element_text(rotation=45, hjust=1))
+        dark_theme((10, 6)) +
+        theme(legend_position="none", axis_text_x=element_text(angle=45, hjust=1))
     )
-    p_all.save("stat/sortedness_by_capacity_all_seeds.png", dpi=300)
-    print("Graph saved to stat/sortedness_by_capacity_all_seeds.png")
+    save_plot(p_all, output_dir / "sortedness_by_capacity_all_seeds.png", width=10, height=6)
 
 if __name__ == "__main__":
     main()
