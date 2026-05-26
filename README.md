@@ -20,6 +20,7 @@ cargo run -- [OPTIONS]
 | `--min-data-bit <N>` | Minimum data bit width | `--min-bit` |
 | `--max-data-bit <N>` | Maximum data bit width | `--max-bit` |
 | `-f, --filter-scenario <NAME>` | Run only scenarios matching this substring | (none) |
+| `-i, --filter-implementation <NAME>` | Run only implementations matching this substring | (none) |
 | `-c, --config <PATH>` | Path to a TOML config file | (none) |
 
 ### Configuration File
@@ -35,7 +36,8 @@ min_fill_bit = 4
 max_fill_bit = 12
 min_data_bit = 4
 max_data_bit = 16
-filter_scenario = "BitSet"
+filter_scenario = ["BitSet"]
+filter_implementation = ["SimdBitSet", "StdHashSet"]
 ```
 
 ```bash
