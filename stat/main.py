@@ -426,6 +426,80 @@ def chart_capacity_breakdown(df: pl.DataFrame, palette: dict[str, str], scenario
 
     return paths
 
+def chart_capacity_breakdown_by_impl(df: pl.DataFrame, palette: dict[str, str], scenarios: list[str], themef: Theme = dark_theme) -> list[Path]:
+    """
+    Pour chaque implémentation, assemble en une seule image combinée
+    les bar charts temps vs capacité pour chaque scénario.
+    Aucun fichier intermédiaire n'est écrit sur disque.
+
+    Parameters:
+    -----------
+    df: pl.DataFrame
+    palette: dict[str, str]
+        La palette des couleurs, pour chaque implémentation.
+    scenarios: list[str]
+        Liste des noms de scénarios à afficher (ordre des facettes)
+    themef: Theme = dark_theme
+        Le thème du graphique
+
+    Returns:
+    --------
+    list[Path]
+        Liste des chemins absolus ou relatifs des fichiers PNG générés.
+    """
+    
+    paths: dict[str, list[Path]] = {}
+
+    for scenario in scenarios:
+        sub = df.filter(pl.col("scenario") == scenario)
+        impls_in_scenario = sorted(sub["impl"].unique().to_list())
+        paths[scenario] = []
+
+        for impl in impls_in_scenario:
+            sub_impl = sub.filter(pl.col("impl") == impl)
+            stats = (
+                create_stats(sub_impl, ["max_capacity"])
+                .with_columns(
+                    pl.col("max_capacity").cast(pl.Utf8).alias("cap_str")
+                )
+                .sort("max_capacity")
+            )
+
+            cap_order = (
+                stats
+                .select(["max_capacity", "cap_str"])
+                .unique()
+                .sort("max_capacity")["cap_str"]
+                .to_list()
+            )
+            n_cap = len(cap_order)
+            fig_w = max(9, n_cap * 1.4 + 2)
+
+            plot = (
+                ggplot(stats, aes(x="cap_str", y="mean_time"))
+                + geom_col(fill=palette.get(impl, "#888888"), width=0.7)
+                + geom_errorbar(
+                    aes(ymin="ymin", ymax="ymax"),
+                    width=0.35, color=_TEXT_COL, alpha=0.6, size=0.6,
+                )
+                + scale_x_discrete(limits=cap_order)
+                + scale_y_continuous(labels=lambda lst: [f"{v:,.0f}" for v in lst])
+                + labs(
+                    title=f"{scenario} · {impl}",
+                    x="Capacité maximale",
+                    y="Temps moyen (cycles CPU)",
+                )
+                + themef((fig_w, 5))
+                + theme(axis_text_x=element_text(angle=20, hjust=1, size=8))
+            )
+
+            safe = impl.replace("/", "_").replace(" ", "_")
+            path = OUTPUT_DIR / "impls" / scenario / f"2_cap_{safe}.png"
+            save_plot(plot, path, width=fig_w, height=5)
+            paths[scenario].append(path)
+
+    return paths
+
 # ════════════════════════════════════════════════════════════════
 # POINT D'ENTRÉE
 # ════════════════════════════════════════════════════════════════
@@ -446,8 +520,9 @@ def main() -> None :
 
     chart_global(df, palette)
     chart_all_scenarios_faceted(df, palette, scenarios)
-    scenario_paths  = chart_scenario_individual(df, palette, scenarios)
-    capacity_paths  = chart_capacity_breakdown(df, palette, scenarios)
+    scenario_paths          = chart_scenario_individual(df, palette, scenarios)
+    capacity_paths          = chart_capacity_breakdown(df, palette, scenarios)
+    capacity_paths_by_impl  = chart_capacity_breakdown_by_impl(df, palette, scenarios)
 
     print("\nAssemblage des images combinées…")
 
@@ -462,6 +537,16 @@ def main() -> None :
         cols = min(len(capacity_paths), 2)
         combined = combine_image(capacity_paths, cols)
         out = OUTPUT_DIR / "3_combined_scenarios_capacity.png"
+        combined.save(str(out))
+        print(f"\033[32m  ✓  {out}\033[0m")
+    
+    for scenario, cpaths in capacity_paths_by_impl.items():
+        if not cpaths:
+            continue
+        cols = min(len(cpaths), 3)
+        combined = combine_image(cpaths, cols)
+        safe = scenario.replace("/", "_").replace(" ", "_")
+        out = OUTPUT_DIR / f"3_cap_{safe}.png"
         combined.save(str(out))
         print(f"\033[32m  ✓  {out}\033[0m")
 
