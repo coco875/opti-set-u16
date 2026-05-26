@@ -307,8 +307,8 @@ impl SetInt for IntervalResourceSet {
     }
 
     fn symmetric_difference_with(&mut self, other: &Self) {
-        self.difference_with(other);
         let other_diff = other.difference(self);
+        self.difference_with(other);
         self.union_with(&other_diff);
     }
 }
