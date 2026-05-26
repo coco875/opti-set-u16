@@ -1,6 +1,8 @@
 mod bit_tree_set;
 mod byte_array_set;
 mod custom_bit_set;
+mod custom_bst;
+mod custom_interval_set;
 mod interval;
 mod lib_avl_tree;
 mod lib_bit_set;
@@ -23,12 +25,12 @@ mod std_tree_set;
 mod std_tree_set_default_func;
 mod std_vec;
 mod std_vec_dicotomie;
-mod custom_bst;
-mod custom_interval_set;
 
 pub use bit_tree_set::BitTreeSet;
 pub use byte_array_set::ByteArraySet;
 pub use custom_bit_set::CustomBitSet;
+pub use custom_bst::BinarySearchTree;
+pub use custom_interval_set::IntervalResourceSet;
 pub use interval::IntervalSet;
 pub use lib_avl_tree::LibAvlTree;
 pub use lib_bit_set::LibBitSet;
@@ -51,8 +53,6 @@ pub use std_tree_set::StdTreeSet;
 pub use std_tree_set_default_func::StdTreeSetDefaultFunc;
 pub use std_vec::StdVec;
 pub use std_vec_dicotomie::StdVecDicotomie;
-pub use custom_bst::BinarySearchTree;
-pub use custom_interval_set::IntervalResourceSet;
 
 pub trait SetInt: 'static {
     fn clear(&mut self);

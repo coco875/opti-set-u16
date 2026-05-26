@@ -11,8 +11,11 @@ impl IntervalResourceSet {
     fn find_pos(&self, v: u64) -> usize {
         self.ranges
             .binary_search_by(|&(s, _)| {
-                if s > v { core::cmp::Ordering::Greater }
-                else { core::cmp::Ordering::Less }
+                if s > v {
+                    core::cmp::Ordering::Greater
+                } else {
+                    core::cmp::Ordering::Less
+                }
             })
             .unwrap_err()
     }
@@ -54,7 +57,7 @@ impl IntervalResourceSet {
             i += 1;
         }
 
-        let len = result.iter().map(|(s,e)| (e - s + 1) as usize).sum();
+        let len = result.iter().map(|(s, e)| (e - s + 1) as usize).sum();
 
         Self {
             ranges: result,
@@ -65,7 +68,6 @@ impl IntervalResourceSet {
 }
 
 impl SetIntConstruct for IntervalResourceSet {
-    
     fn new() -> Self {
         Self {
             ranges: Vec::new(),
@@ -77,14 +79,14 @@ impl SetIntConstruct for IntervalResourceSet {
     fn with_capacity(capacity: usize) -> Self {
         Self {
             ranges: Vec::with_capacity(capacity),
-            len:0,
+            len: 0,
             _marker: core::marker::PhantomData,
         }
     }
 }
 
 impl SetInt for IntervalResourceSet {
-    fn insert(&mut self, value: T) -> () {
+    fn insert(&mut self, value: T) {
         let v = value.into();
         let i = self.find_pos(v);
 
@@ -195,25 +197,25 @@ impl SetInt for IntervalResourceSet {
         self.len = 0;
     }
 
-    fn union_with(&mut self, other: &Self) -> () {
+    fn union_with(&mut self, other: &Self) {
         let mut result = Vec::with_capacity(self.ranges.len() + other.ranges.len());
 
         let mut i = 0;
         let mut j = 0;
 
-        let push = |new: (u64, u64), result: &mut Vec<(u64,u64)>| {
-            if let Some(last) = result.last_mut() {
-                if last.1 + 1 >= new.0 {
-                    last.1 = last.1.max(new.1);
-                    return;
-                }
+        let push = |new: (u64, u64), result: &mut Vec<(u64, u64)>| {
+            if let Some(last) = result.last_mut()
+                && last.1 + 1 >= new.0
+            {
+                last.1 = last.1.max(new.1);
+                return;
             }
             result.push(new);
         };
 
         while i < self.ranges.len() || j < other.ranges.len() {
-            let next = if j >= other.ranges.len() ||
-                (i < self.ranges.len() && self.ranges[i].0 <= other.ranges[j].0)
+            let next = if j >= other.ranges.len()
+                || (i < self.ranges.len() && self.ranges[i].0 <= other.ranges[j].0)
             {
                 let r = self.ranges[i];
                 i += 1;
@@ -227,12 +229,12 @@ impl SetInt for IntervalResourceSet {
             push(next, &mut result);
         }
 
-        let len = result.iter().map(|(s,e)| (e-s+1) as usize).sum();
+        let len = result.iter().map(|(s, e)| (e - s + 1) as usize).sum();
         self.len = len;
         self.ranges = result;
     }
 
-    fn intersection_with(&mut self, other: &Self) -> () {
+    fn intersection_with(&mut self, other: &Self) {
         let mut result = Vec::new();
         let mut i = 0;
         let mut j = 0;
@@ -255,13 +257,13 @@ impl SetInt for IntervalResourceSet {
             }
         }
 
-        let len = result.iter().map(|(s,e)| (e - s + 1) as usize).sum();
+        let len = result.iter().map(|(s, e)| (e - s + 1) as usize).sum();
 
         self.len = len;
         self.ranges = result;
     }
 
-    fn difference_with(&mut self, other: &Self) -> () {
+    fn difference_with(&mut self, other: &Self) {
         let mut result = Vec::new();
         let mut i = 0;
         let mut j = 0;
@@ -298,14 +300,13 @@ impl SetInt for IntervalResourceSet {
             i += 1;
         }
 
-        let len = result.iter().map(|(s,e)| (e - s + 1) as usize).sum();
+        let len = result.iter().map(|(s, e)| (e - s + 1) as usize).sum();
 
         self.len = len;
         self.ranges = result;
     }
 
-    fn symmetric_difference_with(&mut self, other: &Self) -> () {
-        
+    fn symmetric_difference_with(&mut self, other: &Self) {
         self.difference_with(other);
         let other_diff = other.difference(self);
         self.union_with(&other_diff);

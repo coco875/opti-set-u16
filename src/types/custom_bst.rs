@@ -1,5 +1,5 @@
-use std::fmt::Debug;
 use super::{SetInt, SetIntConstruct};
+use std::fmt::Debug;
 
 type T = u16;
 
@@ -91,7 +91,6 @@ impl BinarySearchTree {
                 }
 
                 match (n.left.take(), n.right.take()) {
-
                     (None, None) => {
                         *node = None;
                     }
@@ -123,7 +122,6 @@ impl BinarySearchTree {
 }
 
 impl SetIntConstruct for BinarySearchTree {
-
     fn new() -> Self {
         Self {
             root: None,
@@ -137,14 +135,13 @@ impl SetIntConstruct for BinarySearchTree {
 }
 
 impl SetInt for BinarySearchTree {
-
     fn iter(&self) -> Box<dyn Iterator<Item = u16>> {
         let mut vec = Vec::new();
         Self::inorder(&self.root, &mut vec);
         Box::new(vec.into_iter())
     }
 
-    fn insert(&mut self, value: T) -> () {
+    fn insert(&mut self, value: T) {
         let inserted = Self::insert_node(&mut self.root, value);
         if inserted {
             self.size += 1;
@@ -156,8 +153,8 @@ impl SetInt for BinarySearchTree {
         if removed {
             self.size -= 1;
         }
-    removed
-}
+        removed
+    }
 
     fn contains(&self, value: T) -> bool {
         Self::contains_node(&self.root, value)
@@ -172,15 +169,15 @@ impl SetInt for BinarySearchTree {
         self.size = 0;
     }
 
-    fn union_with(&mut self, other: &Self) -> () {
-        for v in other.iter(){
+    fn union_with(&mut self, other: &Self) {
+        for v in other.iter() {
             if !self.contains(v) {
                 self.insert(v);
             }
         }
     }
 
-    fn intersection_with(&mut self, other: &Self) -> () {
+    fn intersection_with(&mut self, other: &Self) {
         for v in self.iter().collect::<Vec<u16>>() {
             if !other.contains(v) {
                 self.remove(v);
@@ -188,7 +185,7 @@ impl SetInt for BinarySearchTree {
         }
     }
 
-    fn difference_with(&mut self, other: &Self) -> () {
+    fn difference_with(&mut self, other: &Self) {
         for v in self.iter().collect::<Vec<u16>>() {
             if other.contains(v) {
                 self.remove(v);
@@ -196,7 +193,7 @@ impl SetInt for BinarySearchTree {
         }
     }
 
-    fn symmetric_difference_with(&mut self, other: &Self) -> () {
+    fn symmetric_difference_with(&mut self, other: &Self) {
         for v in self.iter().collect::<Vec<u16>>() {
             if other.contains(v) {
                 self.remove(v);
