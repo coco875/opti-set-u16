@@ -1,3 +1,5 @@
+use std::{arch::global_asm};
+
 use super::{SetInt, SetIntConstruct};
 
 #[derive(Clone, Debug)]
@@ -16,14 +18,17 @@ impl Interval {
     }
 
     fn overlaps(&self, other: &Interval) -> bool {
-        self.start <= other.end.saturating_add(1) && other.start <= self.end.saturating_add(1)
+        self.start < other.start && self.end > other.start && self.end < other.end
     }
 
     fn merge(&self, other: &Interval) -> Interval {
         Interval::new(self.start.min(other.start), self.end.max(other.end))
     }
-}
 
+ }
+
+
+#[derive(Clone, Debug)]
 pub struct IntervalSet {
     intervals: Vec<Interval>,
 }
@@ -312,5 +317,330 @@ impl SetInt for IntervalSet {
         }
 
         self.intervals = result;
+    }
+}
+
+
+
+#[cfg(test)]
+mod tests_intervalSet {
+    use super::*;
+
+    #[test]
+    fn test_intervalset_beforeP() {
+        let a = IntervalSet { intervals: vec![Interval{ start: 0, end: 16 }] };
+        let b = IntervalSet { intervals: vec![Interval{ start: 32, end: 64 }] };
+        let mut aa = a.clone();
+        aa.union_with(&b);
+        assert_eq!(aa.len(), 50);
+        let mut aa = a.clone();
+        aa.intersection_with(&b);
+        assert_eq!(aa.len(), 0);
+
+        let a = IntervalSet { intervals: vec![Interval{ start: 0, end: 16 }] };
+        let b = IntervalSet { intervals: vec![Interval{ start: 32, end: 32 }] };
+        let mut aa = a.clone();
+        aa.union_with(&b);
+        assert_eq!(aa.len(), 18);
+        let mut aa = a.clone();
+        aa.intersection_with(&b);
+        assert_eq!(aa.len(), 0);
+    
+        let a = IntervalSet { intervals: vec![Interval{ start: 16, end: 16 }] };
+        let b = IntervalSet { intervals: vec![Interval{ start: 32, end: 64 }] };
+        let mut aa = a.clone();
+        aa.union_with(&b);
+        assert_eq!(aa.len(), 34);
+        let mut aa = a.clone();
+        aa.intersection_with(&b);
+        assert_eq!(aa.len(), 0);
+
+        let a = IntervalSet { intervals: vec![Interval{ start: 16, end: 16 }] };
+        let b = IntervalSet { intervals: vec![Interval{ start: 32, end: 32 }] };
+        let mut aa = a.clone();
+        aa.union_with(&b);
+        assert_eq!(aa.len(), 2);
+        let mut aa = a.clone();
+        aa.intersection_with(&b);
+        assert_eq!(aa.len(), 0);
+    }
+
+    #[test]
+    fn test_interval_meets(){
+        let a = IntervalSet { intervals: vec![Interval{ start: 0, end: 16 }] };
+        let b = IntervalSet { intervals: vec![Interval{ start: 16, end: 32 }] };
+        let mut aa = a.clone();
+        aa.union_with(&b);
+        assert_eq!(aa.len(), 33);
+        let mut aa = a.clone();
+        aa.intersection_with(&b);
+        assert_eq!(aa.len(), 1);
+    }
+
+    #[test]
+    fn test_interval_overlaps(){
+        let a = IntervalSet { intervals: vec![Interval{ start: 0, end: 16 }] };
+        let b = IntervalSet { intervals: vec![Interval{ start: 8, end: 32 }] };
+        let mut aa = a.clone();
+        aa.union_with(&b);
+        assert_eq!(aa.len(), 33);
+        let mut aa = a.clone();
+        aa.intersection_with(&b);
+        assert_eq!(aa.len(), 9);
+    }
+
+    #[test]
+    fn test_interval_starts(){
+        let a = IntervalSet { intervals: vec![Interval{ start: 0, end: 16 }] };
+        let b = IntervalSet { intervals: vec![Interval{ start: 0, end: 32 }] };
+        let mut aa = a.clone();
+        aa.union_with(&b);
+        assert_eq!(aa.len(), 33);
+        let mut aa = a.clone();
+        aa.intersection_with(&b);
+        assert_eq!(aa.len(), 17);
+
+        let a = IntervalSet { intervals: vec![Interval{ start: 0, end: 0 }] };
+        let b = IntervalSet { intervals: vec![Interval{ start: 0, end: 32 }] };
+        let mut aa = a.clone();
+        aa.union_with(&b);
+        assert_eq!(aa.len(), 33);
+        let mut aa = a.clone();
+        aa.intersection_with(&b);
+        assert_eq!(aa.len(), 1);
+    }
+
+    
+    #[test]
+    fn test_interval_containedByP(){
+        let a = IntervalSet { intervals: vec![Interval{ start: 8, end: 16 }] };
+        let b = IntervalSet { intervals: vec![Interval{ start: 0, end: 32 }] };
+        let mut aa = a.clone();
+        aa.union_with(&b);
+        assert_eq!(aa.len(), 33);
+        let mut aa = a.clone();
+        aa.intersection_with(&b);
+        assert_eq!(aa.len(), 9);
+
+        let a = IntervalSet { intervals: vec![Interval{ start: 5, end: 5 }] };
+        let b = IntervalSet { intervals: vec![Interval{ start: 0, end: 32 }] };
+        let mut aa = a.clone();
+        aa.union_with(&b);
+        assert_eq!(aa.len(), 33);
+        let mut aa = a.clone();
+        aa.intersection_with(&b);
+        assert_eq!(aa.len(), 1);
+    }
+
+    
+    #[test]
+    fn test_interval_finishes(){
+        let a = IntervalSet { intervals: vec![Interval{ start: 16, end: 32 }] };
+        let b = IntervalSet { intervals: vec![Interval{ start: 0, end: 32 }] };
+        let mut aa = a.clone();
+        aa.union_with(&b);
+        assert_eq!(aa.len(), 33);
+        let mut aa = a.clone();
+        aa.intersection_with(&b);
+        assert_eq!(aa.len(), 17);
+
+        let a = IntervalSet { intervals: vec![Interval{ start: 32, end: 32 }] };
+        let b = IntervalSet { intervals: vec![Interval{ start: 0, end: 32 }] };
+        let mut aa = a.clone();
+        aa.union_with(&b);
+        assert_eq!(aa.len(), 33);
+        let mut aa = a.clone();
+        aa.intersection_with(&b);
+        assert_eq!(aa.len(), 1);
+    }
+
+    
+    #[test]
+    fn test_interval_equalP(){
+        let a = IntervalSet { intervals: vec![Interval{ start: 0, end: 32 }] };
+        let b = IntervalSet { intervals: vec![Interval{ start: 0, end: 32 }] };
+        let mut aa = a.clone();
+        aa.union_with(&b);
+        assert_eq!(aa.len(), 33);
+        let mut aa = a.clone();
+        aa.intersection_with(&b);
+        assert_eq!(aa.len(), 33);
+
+        let a = IntervalSet { intervals: vec![Interval{ start: 0, end: 0 }] };
+        let b = IntervalSet { intervals: vec![Interval{ start: 0, end: 0 }] };
+        let mut aa = a.clone();
+        aa.union_with(&b);
+        assert_eq!(aa.len(), 1);
+        let mut aa = a.clone();
+        aa.intersection_with(&b);
+        assert_eq!(aa.len(), 1);
+    }
+
+    
+    #[test]
+    fn test_interval_finishedBy(){
+        let a = IntervalSet { intervals: vec![Interval{ start: 0, end: 16 }] };
+        let b = IntervalSet { intervals: vec![Interval{ start: 8, end: 16 }] };
+        let mut aa = a.clone();
+        aa.union_with(&b);
+        assert_eq!(aa.len(), 17);
+        let mut aa = a.clone();
+        aa.intersection_with(&b);
+        assert_eq!(aa.len(), 9);
+
+        let a = IntervalSet { intervals: vec![Interval{ start: 0, end: 32 }] };
+        let b = IntervalSet { intervals: vec![Interval{ start: 32, end: 32 }] };
+        let mut aa = a.clone();
+        aa.union_with(&b);
+        assert_eq!(aa.len(), 33);
+        let mut aa = a.clone();
+        aa.intersection_with(&b);
+        assert_eq!(aa.len(), 1);
+    }
+
+    
+    #[test]
+    fn test_interval_containsP(){
+        let a = IntervalSet { intervals: vec![Interval{ start: 0, end: 16 }] };
+        let b = IntervalSet { intervals: vec![Interval{ start: 5, end: 10 }] };
+        let mut aa = a.clone();
+        aa.union_with(&b);
+        assert_eq!(aa.len(), 17);
+        let mut aa = a.clone();
+        aa.intersection_with(&b);
+        assert_eq!(aa.len(), 6);
+
+        let a = IntervalSet { intervals: vec![Interval{ start: 0, end: 16 }] };
+        let b = IntervalSet { intervals: vec![Interval{ start: 5, end: 5 }] };
+        let mut aa = a.clone();
+        aa.union_with(&b);
+        assert_eq!(aa.len(), 17);
+        let mut aa = a.clone();
+        aa.intersection_with(&b);
+        assert_eq!(aa.len(), 1);
+    }
+
+    
+    #[test]
+    fn test_interval_startedBy(){
+        let a = IntervalSet { intervals: vec![Interval{ start: 0, end: 16 }] };
+        let b = IntervalSet { intervals: vec![Interval{ start: 0, end: 8 }] };
+        let mut aa = a.clone();
+        aa.union_with(&b);
+        assert_eq!(aa.len(), 17);
+        let mut aa = a.clone();
+        aa.intersection_with(&b);
+        assert_eq!(aa.len(), 9);
+
+        let a = IntervalSet { intervals: vec![Interval{ start: 0, end: 16 }] };
+        let b = IntervalSet { intervals: vec![Interval{ start: 0, end: 0 }] };
+        let mut aa = a.clone();
+        aa.union_with(&b);
+        assert_eq!(aa.len(), 17);
+        let mut aa = a.clone();
+        aa.intersection_with(&b);
+        assert_eq!(aa.len(), 1);
+    }
+
+    
+    #[test]
+    fn test_interval_overlappedBy(){
+        let a = IntervalSet { intervals: vec![Interval{ start: 8, end: 32 }] };
+        let b = IntervalSet { intervals: vec![Interval{ start: 0, end: 16 }] };
+        let mut aa = a.clone();
+        aa.union_with(&b);
+        assert_eq!(aa.len(), 33);
+        let mut aa = a.clone();
+        aa.intersection_with(&b);
+        assert_eq!(aa.len(), 9);
+    }
+
+    
+    #[test]
+    fn test_interval_metBy(){
+        let a = IntervalSet { intervals: vec![Interval{ start: 16, end: 32 }] };
+        let b = IntervalSet { intervals: vec![Interval{ start: 0, end: 16 }] };
+        let mut aa = a.clone();
+        aa.union_with(&b);
+        assert_eq!(aa.len(), 33);
+        let mut aa = a.clone();
+        aa.intersection_with(&b);
+        assert_eq!(aa.len(), 1);
+    }
+
+    
+    #[test]
+    fn test_interval_afterP(){
+        let a = IntervalSet { intervals: vec![Interval{ start: 20, end: 30 }] };
+        let b = IntervalSet { intervals: vec![Interval{ start: 0, end: 10 }] };
+        let mut aa = a.clone();
+        aa.union_with(&b);
+        assert_eq!(aa.len(), 22);
+        let mut aa = a.clone();
+        aa.intersection_with(&b);
+        assert_eq!(aa.len(), 0);
+
+        let a = IntervalSet { intervals: vec![Interval{ start: 20, end: 20 }] };
+        let b = IntervalSet { intervals: vec![Interval{ start: 0, end: 10 }] };
+        let mut aa = a.clone();
+        aa.union_with(&b);
+        assert_eq!(aa.len(), 12);
+        let mut aa = a.clone();
+        aa.intersection_with(&b);
+        assert_eq!(aa.len(), 0);
+
+        let a = IntervalSet { intervals: vec![Interval{ start: 20, end: 30 }] };
+        let b = IntervalSet { intervals: vec![Interval{ start: 0, end: 0 }] };
+        let mut aa = a.clone();
+        aa.union_with(&b);
+        assert_eq!(aa.len(), 12);
+        let mut aa = a.clone();
+        aa.intersection_with(&b);
+        assert_eq!(aa.len(), 0);
+     
+        let a = IntervalSet { intervals: vec![Interval{ start: 20, end: 20 }] };
+        let b = IntervalSet { intervals: vec![Interval{ start: 0, end: 0 }] };
+        let mut aa = a.clone();
+        aa.union_with(&b);
+        assert_eq!(aa.len(), 2);
+        let mut aa = a.clone();
+        aa.intersection_with(&b);
+        assert_eq!(aa.len(), 0);
+    }
+
+    #[test]
+    fn test_interval_fstEmpty(){
+        let a = IntervalSet { intervals: vec![Interval{ start: 16, end: 32 }] };
+        let b = IntervalSet { intervals: vec![] };
+        let mut aa = a.clone();
+        aa.union_with(&b);
+        assert_eq!(aa.len(), 17);
+        let mut aa = a.clone();
+        aa.intersection_with(&b);
+        assert_eq!(aa.len(), 0);
+    }
+
+    #[test]
+    fn test_interval_sndEmpty(){
+        let a = IntervalSet { intervals: vec![] };
+        let b = IntervalSet { intervals: vec![Interval{ start: 0, end: 16 }] };
+        let mut aa = a.clone();
+        aa.union_with(&b);
+        assert_eq!(aa.len(), 17);
+        let mut aa = a.clone();
+        aa.intersection_with(&b);
+        assert_eq!(aa.len(), 0);
+    }
+
+    #[test]
+    fn test_interval_bothEmpty(){
+        let a = IntervalSet { intervals: vec![] };
+        let b = IntervalSet { intervals: vec![] };
+        let mut aa = a.clone();
+        aa.union_with(&b);
+        assert_eq!(aa.len(), 0);
+        let mut aa = a.clone();
+        aa.intersection_with(&b);
+        assert_eq!(aa.len(), 0);
     }
 }
