@@ -117,7 +117,6 @@ def create_stats(df: pl.DataFrame, group_by: list[str]) -> pl.DataFrame:
     )
 
 
-
 def combine_plots(plots: list["ggplot"], cols: int) -> "ggplot":
     """
     Combine plusieurs objets ggplot en une grille avec plotnine.
@@ -424,16 +423,21 @@ def chart_time_scaling(
     Génère un graphique linéaire montrant le passage à l'échelle (temps vs capacité maximale)
     de toutes les implémentations pour chaque scénario.
     """
-    stats = create_stats(df, ["scenario", "impl", "max_capacity"]).sort(["scenario", "impl", "max_capacity"])
-    
+    stats = create_stats(df, ["scenario", "impl", "max_capacity"]).sort(
+        ["scenario", "impl", "max_capacity"]
+    )
+
     n_cols = 3
     scenarios = sorted(df["scenario"].unique().to_list())
     n_rows = (len(scenarios) + n_cols - 1) // n_cols
     fig_w = 18
     fig_h = max(4, n_rows * 4)
-    
+
     plot = (
-        ggplot(stats, aes(x="factor(max_capacity)", y="mean_time", color="impl", group="impl"))
+        ggplot(
+            stats,
+            aes(x="factor(max_capacity)", y="mean_time", color="impl", group="impl"),
+        )
         + geom_line(size=0.8)
         + geom_point(size=1.5)
         + facet_wrap("~ scenario", scales="free_y", ncol=n_cols)
@@ -450,7 +454,7 @@ def chart_time_scaling(
             legend_position="right",
         )
     )
-    
+
     save_plot(
         plot,
         OUTPUT_DIR / "4_all_scenarios_time_scaling.png",
@@ -478,7 +482,7 @@ def chart_time_distribution(
     n_rows = (len(scenarios) + n_cols - 1) // n_cols
     fig_w = 20
     fig_h = max(5, n_rows * 5.5)
-    
+
     plot = (
         ggplot(df, aes(x="impl", y="time", fill="impl"))
         + geom_boxplot(outlier_size=0.8, outlier_alpha=0.4, show_legend=False)
@@ -495,7 +499,7 @@ def chart_time_distribution(
             axis_text_x=element_text(angle=40, hjust=1, size=7),
         )
     )
-    
+
     save_plot(
         plot,
         OUTPUT_DIR / "5_all_scenarios_time_distribution.png",
@@ -538,20 +542,34 @@ def main() -> None:
         combined = combine_plots(scenario_plots, cols)
         out = OUTPUT_DIR / "3_combined_scenarios_avg_time"
         n_rows = (len(scenario_plots) + cols - 1) // cols
-        
+
         # Dynamically calculate width based on max implementation count to avoid overlapping labels
         max_impl = max(len(p.data["impl"].unique()) for p in scenario_plots)
         col_width = max(7.0, max_impl * 1.1)
         total_width = cols * col_width
         total_height = n_rows * 5.0
-        
-        combined.save(str(out.with_suffix(".png")), width=total_width, height=total_height, verbose=False, limitsize=False)
-        combined.save(str(out.with_suffix(".svg")), width=total_width, height=total_height, verbose=False, limitsize=False)
-        print(f"\033[32m  ✓  {out.with_suffix('.png')}  &  {out.with_suffix('.svg')}\033[0m")
+
+        combined.save(
+            str(out.with_suffix(".png")),
+            width=total_width,
+            height=total_height,
+            verbose=False,
+            limitsize=False,
+        )
+        combined.save(
+            str(out.with_suffix(".svg")),
+            width=total_width,
+            height=total_height,
+            verbose=False,
+            limitsize=False,
+        )
+        print(
+            f"\033[32m  ✓  {out.with_suffix('.png')}  &  {out.with_suffix('.svg')}\033[0m"
+        )
 
     if capacity_plots:
         cols = min(len(capacity_plots), 2)
-        
+
         # Hide the legend on all plots except the last one to save space and prevent collisions
         combined_capacity_plots = []
         for idx, p in enumerate(capacity_plots):
@@ -559,26 +577,39 @@ def main() -> None:
                 combined_capacity_plots.append(p + theme(legend_position="none"))
             else:
                 combined_capacity_plots.append(p + theme(legend_position="right"))
-                
+
         combined = combine_plots(combined_capacity_plots, cols)
         out = OUTPUT_DIR / "3_combined_scenarios_capacity"
         n_rows = (len(capacity_plots) + cols - 1) // cols
-        
+
         # Dynamically calculate width based on max capacity count to avoid overlapping labels
         max_cap = max(len(p.data["max_capacity"].unique()) for p in capacity_plots)
         col_width = max(9.0, max_cap * 1.4 + 2.0)
-        
+
         # Add extra width for the single legend on the right
         total_width = cols * col_width + 3.0
         total_height = n_rows * 5.0
-        
-        combined.save(str(out.with_suffix(".png")), width=total_width, height=total_height, verbose=False, limitsize=False)
-        combined.save(str(out.with_suffix(".svg")), width=total_width, height=total_height, verbose=False, limitsize=False)
-        print(f"\033[32m  ✓  {out.with_suffix('.png')}  &  {out.with_suffix('.svg')}\033[0m")
+
+        combined.save(
+            str(out.with_suffix(".png")),
+            width=total_width,
+            height=total_height,
+            verbose=False,
+            limitsize=False,
+        )
+        combined.save(
+            str(out.with_suffix(".svg")),
+            width=total_width,
+            height=total_height,
+            verbose=False,
+            limitsize=False,
+        )
+        print(
+            f"\033[32m  ✓  {out.with_suffix('.png')}  &  {out.with_suffix('.svg')}\033[0m"
+        )
 
     print(f"\nTous les graphiques sauvegardés dans : {OUTPUT_DIR.resolve()}/\n")
 
 
 if __name__ == "__main__":
     main()
-
