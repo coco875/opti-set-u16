@@ -55,6 +55,9 @@ struct Cli {
 
     #[arg(short, long)]
     filter_scenario: Option<Vec<String>>,
+
+    #[arg(short = 'i', long)]
+    filter_implementation: Option<Vec<String>>,
 }
 
 #[derive(Deserialize, Default)]
@@ -63,6 +66,7 @@ struct Config {
     min_bit: Option<u32>,
     max_bit: Option<u32>,
     filter_scenario: Option<Vec<String>>,
+    filter_implementation: Option<Vec<String>>,
 }
 
 impl Config {
@@ -78,8 +82,13 @@ impl Config {
             max_bit: cli.max_bit.or(self.max_bit),
             filter_scenario: match (cli.filter_scenario, self.filter_scenario) {
                 (Some(cli_filters), _) => Some(cli_filters),
-                (None, Some(config_filters)) => Some(config_filters),
-                (None, None) => None,
+                (_, Some(config_filters)) => Some(config_filters),
+                (_, _) => None,
+            },
+            filter_implementation: match (cli.filter_implementation, self.filter_implementation) {
+                (Some(cli_filters), _) => Some(cli_filters),
+                (_, Some(config_filters)) => Some(config_filters),
+                (_, _) => None,
             },
         }
     }
@@ -127,6 +136,7 @@ fn main() -> Result<()> {
     let min_bit = config.min_bit.unwrap_or(4);
     let max_bit = config.max_bit.unwrap_or(16);
     let filter_scenario = config.filter_scenario;
+    let filter_implemenation = config.filter_implementation;
 
     let file = OpenOptions::new()
         .create(true)
@@ -170,11 +180,17 @@ fn main() -> Result<()> {
             input_data.insert((seed, cap), data);
         }
         for _ in 0..sample {
-            for (scenario_id, &(_scenario_builder, scenario_name, _type_name)) in
+            for (scenario_id, &(_scenario_builder, scenario_name, type_name)) in
                 scenario.iter().enumerate()
             {
                 if let Some(ref filters) = filter_scenario
                     && !filters.iter().any(|f| scenario_name.contains(f.as_str()))
+                {
+                    continue;
+                }
+
+                if let Some(ref filters) = filter_implemenation
+                    && !filters.iter().any(|f| type_name.contains(f.as_str()))
                 {
                     continue;
                 }
@@ -250,7 +266,6 @@ fn main() -> Result<()> {
             "{sceario_name}, {type_name}, {cap}, {fill}, {data}, {seed}, {time}"
         )?;
     }
-    println!("Hello, world!");
     buf_writer.flush()?;
     Ok(())
 }
