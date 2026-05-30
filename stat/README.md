@@ -18,9 +18,39 @@ Generates comprehensive performance charts from the benchmark results.
 ### Usage
 After running the Rust benchmark (which generates `output.csv`), run:
 ```bash
-python stat/main.py [output.csv]
+python stat/main.py [output.csv] [options]
 ```
 *Defaults to reading `output.csv` from the project root if no file is provided. Charts are saved to `./benchmark_charts/`.*
+
+### Command Line Options
+
+- `[input_file]` (positional): Path to the benchmark CSV file (default: `output.csv`).
+- `-w, --whitelist WHITELIST [WHITELIST ...]`: List of specific implementations to include in the charts. All other implementations will be filtered out.
+- `-b, --blacklist BLACKLIST [BLACKLIST ...]`: List of implementations to exclude from the charts.
+- `-o, --output-dir OUTPUT_DIR`: Custom destination directory for the generated charts (default: `benchmark_charts`).
+- `--theme {dark,light}`: Theme of the charts. Choices are `dark` (default) or `light`. Both themes are designed with highly legible foreground, background, grid, and error bar colors tailored for their respective modes.
+
+---
+
+## 2. Category-Specific Splitting Script (`run_categories.sh`)
+
+To make analysis easier, a bash script `run_categories.sh` is provided in the project root to split the 25+ implementations into 5 coherent architectural/structural categories:
+
+1. **Bitsets** (`ByteArraySet`, `SimdBitSet`, `CustomBitSet`, `LibBitSet`, `LibBitVec`, `LibFixedBitSet`, `LibIdlset`)
+2. **Hash Sets** (`StdHashSet`, `StdHashSetDefaultFunc`, `StdHashSetNoHasher`, `LibFxHashSet`, `LibFxHashSetDefaultFunc`)
+3. **Trees** (`StdTreeSet`, `StdTreeSetDefaultFunc`, `LibAvlTree`, `LibRBTree`, `BinarySearchTree`, `BitTreeSet`)
+4. **Intervals & Roaring** (`IntervalSet`, `LibInterval`, `LibRangeSetBlaze`, `IntervalResourceSet`, `LibRoaring`, `LibCRoaring`)
+5. **Sequences & Vectors** (`StdVec`, `StdVecDicotomie`, `StdLinkedList`)
+
+### Usage
+```bash
+./run_categories.sh [output.csv] [theme]
+```
+- **`[output.csv]`** (optional): Path to the benchmark CSV file.
+- **`[theme]`** (optional): Graph theme choice, either `dark` (default) or `light`.
+
+This generates distinct, easy-to-read charts for each category under:
+`./benchmark_charts/categories/<category_name>/`
 
 ### Generated Charts
 
@@ -35,7 +65,7 @@ python stat/main.py [output.csv]
 
 ---
 
-## 2. Input Data Sortedness Analysis (`stat/input_data_sort.py`)
+## 3. Input Data Sortedness Analysis (`stat/input_data_sort.py`)
 
 Analyzes the degree of sortedness of the randomly generated input sequences in `data.csv`.
 
@@ -51,7 +81,7 @@ python stat/input_data_sort.py
 
 ---
 
-## 3. Input Data Splitness & Hole Analysis (`stat/input_stats_splitness.py`)
+## 4. Input Data Splitness & Hole Analysis (`stat/input_stats_splitness.py`)
 
 Measures the "splitness" of generated integer sets by counting consecutive holes and missing values.
 
