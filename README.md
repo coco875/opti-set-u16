@@ -112,6 +112,8 @@ Here is a list of the integer set implementations benchmarked in this project, c
 - **CustomBitSet**: A basic custom bitset implementation.
 - **BitTreeSet**: A custom tree-based bitset structure.
 - **IntervalSet**: A custom interval set.
+- **BinarySearchTree**: A custom binary search tree implementation.
+- **IntervalResourceSet**: A custom interval set storing disjoint sorted ranges in a vector.
 
 ### Standard Library (`std`)
 
