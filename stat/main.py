@@ -478,6 +478,41 @@ def chart_time_scaling(
         height=fig_h,
     )
 
+    # Génère également un graphique individuel par scénario
+    for scenario in scenarios:
+        sub_stats = stats.filter(pl.col("scenario") == scenario)
+
+        scen_w = 12
+        scen_h = 7
+
+        scen_plot = (
+            ggplot(
+                sub_stats,
+                aes(x="factor(max_capacity)", y="mean_time", color="impl", group="impl"),
+            )
+            + geom_line(size=0.8)
+            + geom_point(size=1.5)
+            + scale_color_manual(values=palette, name="Implémentation")
+            + scale_y_continuous(labels=lambda lst: [f"{v:,.0f}" for v in lst])
+            + labs(
+                title=f"Courbe de passage à l'échelle - {scenario}",
+                x="Capacité maximale",
+                y="Temps moyen (cycles CPU)",
+            )
+            + themef((scen_w, scen_h))
+            + theme(
+                axis_text_x=element_text(angle=30, hjust=1, size=8),
+                legend_position="right",
+            )
+        )
+
+        save_plot(
+            scen_plot,
+            OUTPUT_DIR / scenario / "4_time_scaling.png",
+            width=scen_w,
+            height=scen_h,
+        )
+
 
 # ════════════════════════════════════════════════════════════════
 # Boxplots de Distribution et Variabilité des temps
@@ -500,22 +535,44 @@ def chart_time_distribution(
     scenarios = sorted(df["scenario"].unique().to_list())
     n_rows = (len(scenarios) + n_cols - 1) // n_cols
     fig_w = 20
-    fig_h = max(5, n_rows * 5.5)
+    fig_h = max(10, n_rows * 9.5)
+
+    # Calculate outliers per scenario and impl using Polars window functions
+    q1 = pl.col("time").quantile(0.25).over(["scenario", "impl"])
+    q3 = pl.col("time").quantile(0.75).over(["scenario", "impl"])
+    iqr = q3 - q1
+    df = df.with_columns(
+        ((pl.col("time") < q1 - 1.5 * iqr) | (pl.col("time") > q3 + 1.5 * iqr)).alias("is_outlier")
+    )
+    df_outliers = df.filter(pl.col("is_outlier"))
 
     plot = (
         ggplot(df, aes(x="impl", y="time", fill="impl"))
-        + geom_boxplot(outlier_size=0.8, outlier_alpha=0.4, show_legend=False)
-        + facet_wrap("~ scenario", scales="free_y", ncol=n_cols)
+        + geom_jitter(
+            data=df_outliers,
+            mapping=aes(x="impl", y="time", color="impl"),
+            width=0.15,
+            height=0,
+            size=0.8,
+            alpha=0.4,
+            show_legend=False,
+        )
+        + stat_boxplot(geom="errorbar", width=0.2)
+        + geom_boxplot(outlier_shape="", show_legend=False)
+        + coord_flip()
+        + facet_wrap("~ scenario", scales="free", ncol=n_cols)
         + scale_fill_manual(values=palette)
+        + scale_color_manual(values=palette)
         + scale_y_continuous(labels=lambda lst: [f"{v:,.0f}" for v in lst])
         + labs(
-            title="Distribution et variabilité des temps d'exécution par scénario",
-            x="Implémentation",
+            title="Distribution des temps d'exécution par implémentation et scénario",
+            x="",
             y="Temps d'exécution (cycles CPU)",
         )
         + themef((fig_w, fig_h))
         + theme(
-            axis_text_x=element_text(angle=40, hjust=1, size=7),
+            axis_text_x=element_text(size=12),
+            axis_title_x=element_text(angle=0, va="bottom", ha="right", size=13),
         )
     )
 
@@ -525,6 +582,51 @@ def chart_time_distribution(
         width=fig_w,
         height=fig_h,
     )
+
+    # Génère également un graphique individuel par scénario
+    for scenario in scenarios:
+        sub = df.filter(pl.col("scenario") == scenario)
+        sub_outliers = df_outliers.filter(pl.col("scenario") == scenario)
+
+        n_impl = len(sub["impl"].unique())
+        scen_w = 12
+        scen_h = max(6, n_impl * 0.35)
+
+        scen_plot = (
+            ggplot(sub, aes(x="impl", y="time", fill="impl"))
+            + geom_jitter(
+                data=sub_outliers,
+                mapping=aes(x="impl", y="time", color="impl"),
+                width=0.15,
+                height=0,
+                size=0.8,
+                alpha=0.4,
+                show_legend=False,
+            )
+            + stat_boxplot(geom="errorbar", width=0.2)
+            + geom_boxplot(outlier_shape="", show_legend=False)
+            + coord_flip()
+            + scale_fill_manual(values=palette)
+            + scale_color_manual(values=palette)
+            + scale_y_continuous(labels=lambda lst: [f"{v:,.0f}" for v in lst])
+            + labs(
+                title=f"Temps d'exécution par implémentation - {scenario}",
+                x="",
+                y="Temps d'exécution (cycles CPU)",
+            )
+            + themef((scen_w, scen_h))
+            + theme(
+                axis_text_x=element_text(size=12),
+                axis_title_x=element_text(angle=0, va="bottom", ha="right", size=13),
+            )
+        )
+
+        save_plot(
+            scen_plot,
+            OUTPUT_DIR / scenario / "5_time_distribution.png",
+            width=scen_w,
+            height=scen_h,
+        )
 
 
 # ════════════════════════════════════════════════════════════════
@@ -615,6 +717,24 @@ def main() -> None:
             )
             sys.exit(1)
 
+    name_map = {
+        "LibFxHashSetDefaultFunc": "FxHashSet (Default)",
+        "StdTreeSetDefaultFunc": "StdTreeSet (Default)",
+        "StdHashSetDefaultFunc": "StdHashSet (Default)",
+        "StdHashSetNoHasher": "StdHashSet (No Hasher)",
+        "StdVecDicotomie": "StdVec (Dichot)",
+        "LibCRoaring": "CRoaring",
+        "LibAvlTree": "AvlTree",
+        "LibRBTree": "RBTree",
+        "LibBitSet": "BitSet",
+        "LibBitVec": "BitVec",
+        "LibInterval": "IntervalSet",
+        "LibRoaring": "Roaring",
+        "LibIdlset": "IdlSet",
+        "LibFxHashSet": "FxHashSet",
+    }
+    df = df.with_columns(pl.col("impl").replace_strict(name_map, default=pl.col("impl")))
+
     scenarios = sorted(df["scenario"].unique().to_list())
     impls = sorted(df["impl"].unique().to_list())
     palette = create_palette(impls)
@@ -633,46 +753,6 @@ def main() -> None:
     chart_time_scaling(df, palette)
     chart_time_distribution(df, palette)
 
-    print("\nAssemblage des images combinées…")
-
-    if scenario_plots:
-        cols = min(len(scenario_plots), 3)
-        combined = combine_plots(scenario_plots, cols)
-        out = OUTPUT_DIR / "3_combined_scenarios_avg_time"
-        n_rows = (len(scenario_plots) + cols - 1) // cols
-
-        # Dynamically calculate width based on max implementation count to avoid overlapping labels
-        max_impl = max(len(p.data["impl"].unique()) for p in scenario_plots)
-        col_width = max(7.0, max_impl * 1.1)
-        total_width = cols * col_width
-        total_height = n_rows * 5.0
-
-        save_plot(combined, out, width=total_width, height=total_height)
-
-    if capacity_plots:
-        cols = min(len(capacity_plots), 2)
-
-        # Hide the legend on all plots except the last one to save space and prevent collisions
-        combined_capacity_plots = []
-        for idx, p in enumerate(capacity_plots):
-            if idx < len(capacity_plots) - 1:
-                combined_capacity_plots.append(p + theme(legend_position="none"))
-            else:
-                combined_capacity_plots.append(p + theme(legend_position="right"))
-
-        combined = combine_plots(combined_capacity_plots, cols)
-        out = OUTPUT_DIR / "3_combined_scenarios_capacity"
-        n_rows = (len(capacity_plots) + cols - 1) // cols
-
-        # Dynamically calculate width based on max capacity count to avoid overlapping labels
-        max_cap = max(len(p.data["max_capacity"].unique()) for p in capacity_plots)
-        col_width = max(9.0, max_cap * 1.4 + 2.0)
-
-        # Add extra width for the single legend on the right
-        total_width = cols * col_width + 3.0
-        total_height = n_rows * 5.0
-
-        save_plot(combined, out, width=total_width, height=total_height)
 
     print(f"\nTous les graphiques sauvegardés dans : {OUTPUT_DIR.resolve()}/\n")
 

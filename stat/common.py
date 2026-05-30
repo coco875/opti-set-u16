@@ -61,18 +61,18 @@ dark_theme: Theme = lambda figure_size=(12, 6): (
         panel_background=element_rect(fill=_PANEL_BG, color=_PANEL_BG),
         panel_grid_major_y=element_line(color=_GRID_COL, size=0.6, linetype="dashed"),
         panel_grid_minor=element_blank(),
-        axis_text=element_text(color=_TEXT_COL, size=8),
-        axis_title=element_text(color=_TEXT_COL, size=9),
+        axis_text=element_text(color=_TEXT_COL, size=11),
+        axis_title=element_text(color=_TEXT_COL, size=12),
         axis_ticks=element_line(color=_GRID_COL),
         plot_title=element_text(
-            color=_TEXT_COL, size=12, weight="bold", margin={"b": 10}
+            color=_TEXT_COL, size=15, weight="bold", margin={"b": 10}
         ),
         legend_background=element_rect(fill=_PANEL_BG),
         legend_key=element_rect(fill=_PANEL_BG),
-        legend_text=element_text(color=_TEXT_COL, size=8),
-        legend_title=element_text(color=_TEXT_COL, size=9, weight="bold"),
+        legend_text=element_text(color=_TEXT_COL, size=11),
+        legend_title=element_text(color=_TEXT_COL, size=12, weight="bold"),
         strip_background=element_rect(fill=_PANEL_BG),
-        strip_text=element_text(color=_TEXT_COL, size=9, weight="bold"),
+        strip_text=element_text(color=_TEXT_COL, size=12, weight="bold"),
     )
 )
 
@@ -85,18 +85,18 @@ light_theme: Theme = lambda figure_size=(12, 6): (
         panel_background=element_rect(fill=_LIGHT_PANEL_BG, color=_LIGHT_PANEL_BG),
         panel_grid_major_y=element_line(color=_LIGHT_GRID_COL, size=0.6, linetype="dashed"),
         panel_grid_minor=element_blank(),
-        axis_text=element_text(color=_LIGHT_TEXT_COL, size=8),
-        axis_title=element_text(color=_LIGHT_TEXT_COL, size=9),
+        axis_text=element_text(color=_LIGHT_TEXT_COL, size=11),
+        axis_title=element_text(color=_LIGHT_TEXT_COL, size=12),
         axis_ticks=element_line(color=_LIGHT_GRID_COL),
         plot_title=element_text(
-            color=_LIGHT_TEXT_COL, size=12, weight="bold", margin={"b": 10}
+            color=_LIGHT_TEXT_COL, size=15, weight="bold", margin={"b": 10}
         ),
         legend_background=element_rect(fill=_LIGHT_PANEL_BG),
         legend_key=element_rect(fill=_LIGHT_PANEL_BG),
-        legend_text=element_text(color=_LIGHT_TEXT_COL, size=8),
-        legend_title=element_text(color=_LIGHT_TEXT_COL, size=9, weight="bold"),
+        legend_text=element_text(color=_LIGHT_TEXT_COL, size=11),
+        legend_title=element_text(color=_LIGHT_TEXT_COL, size=12, weight="bold"),
         strip_background=element_rect(fill=_LIGHT_PANEL_BG),
-        strip_text=element_text(color=_LIGHT_TEXT_COL, size=9, weight="bold"),
+        strip_text=element_text(color=_LIGHT_TEXT_COL, size=12, weight="bold"),
     )
 )
 
