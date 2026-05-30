@@ -14,6 +14,11 @@ _PANEL_BG = "#161B22"
 _TEXT_COL = "#E6EDF3"
 _GRID_COL = "#21262D"
 
+_LIGHT_BG = "#FFFFFF"
+_LIGHT_PANEL_BG = "#F6F8FA"
+_LIGHT_TEXT_COL = "#24292F"
+_LIGHT_GRID_COL = "#D0D7DE"
+
 
 def create_palette(impls: list[str], first: str = "#FF8A65") -> dict[str, str]:
     """
@@ -70,6 +75,39 @@ dark_theme: Theme = lambda figure_size=(12, 6): (
         strip_text=element_text(color=_TEXT_COL, size=9, weight="bold"),
     )
 )
+
+
+light_theme: Theme = lambda figure_size=(12, 6): (
+    theme_void()
+    + theme(
+        figure_size=figure_size,
+        plot_background=element_rect(fill=_LIGHT_BG, color=_LIGHT_BG),
+        panel_background=element_rect(fill=_LIGHT_PANEL_BG, color=_LIGHT_PANEL_BG),
+        panel_grid_major_y=element_line(color=_LIGHT_GRID_COL, size=0.6, linetype="dashed"),
+        panel_grid_minor=element_blank(),
+        axis_text=element_text(color=_LIGHT_TEXT_COL, size=8),
+        axis_title=element_text(color=_LIGHT_TEXT_COL, size=9),
+        axis_ticks=element_line(color=_LIGHT_GRID_COL),
+        plot_title=element_text(
+            color=_LIGHT_TEXT_COL, size=12, weight="bold", margin={"b": 10}
+        ),
+        legend_background=element_rect(fill=_LIGHT_PANEL_BG),
+        legend_key=element_rect(fill=_LIGHT_PANEL_BG),
+        legend_text=element_text(color=_LIGHT_TEXT_COL, size=8),
+        legend_title=element_text(color=_LIGHT_TEXT_COL, size=9, weight="bold"),
+        strip_background=element_rect(fill=_LIGHT_PANEL_BG),
+        strip_text=element_text(color=_LIGHT_TEXT_COL, size=9, weight="bold"),
+    )
+)
+
+
+def get_theme(name: str = "dark") -> tuple[Theme, str]:
+    """
+    Retourne (theme_function, text_color) pour le thème choisi.
+    """
+    if name == "light":
+        return light_theme, _LIGHT_TEXT_COL
+    return dark_theme, _TEXT_COL
 
 
 def save_plot(plot, path: Path, width: float = 12, height: float = 6, dpi: int = 150):
