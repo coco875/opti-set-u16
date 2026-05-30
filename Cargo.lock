@@ -87,6 +87,15 @@ dependencies = [
 
 [[package]]
 name = "bit-set"
+version = "0.9.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "34ddef2995421ab6a5c779542c81ee77c115206f4ad9d5a8e05f4ff49716a3dd"
+dependencies = [
+ "bit-vec 0.9.1",
+]
+
+[[package]]
+name = "bit-set"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "09ec2f926cc3060f09db9ebc5b52823d85268d24bb917e472c0c4bea35780a7d"
@@ -305,6 +314,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e6d5a32815ae3f33302d95fdcb2ce17862f8c65363dcfd29360480ba1001fc9c"
 
 [[package]]
+name = "gcollections"
+version = "1.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "59a367c4b0823b6e5ef4d39b8d7e63a16dc2f330fd8064ce53b615e8dd78accb"
+dependencies = [
+ "bit-set 0.9.1",
+ "num-integer",
+ "num-traits",
+ "trilean",
+]
+
+[[package]]
 name = "gen_ops"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -384,6 +405,26 @@ dependencies = [
  "hashbrown 0.16.1",
  "serde",
  "serde_core",
+]
+
+[[package]]
+name = "interval_set"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "73568e7d320756ca7e58e8e3f3242e54e7c68572e8917635005709001ebf4483"
+
+[[package]]
+name = "intervallum"
+version = "1.4.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "412d970960179c81fd2ae4be0459dee697fb7d01bdcb343ec18199ae2aa7e481"
+dependencies = [
+ "bit-set 0.8.0",
+ "gcollections",
+ "num-integer",
+ "num-traits",
+ "serde",
+ "trilean",
 ]
 
 [[package]]
@@ -479,7 +520,10 @@ dependencies = [
  "constcat",
  "croaring",
  "fixedbitset",
+ "gcollections",
  "idlset",
+ "interval_set",
+ "intervallum",
  "proptest",
  "rand 0.10.0",
  "range-set-blaze",
@@ -846,6 +890,12 @@ name = "toml_write"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5d99f8c9a7727884afe522e9bd5edbfc91a3312b36a77b5fb8926e4c31a41801"
+
+[[package]]
+name = "trilean"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "683ba5022fe6dbd7133cad150478ccf51bdb6d861515181e5fc6b4323d4fa424"
 
 [[package]]
 name = "unarray"

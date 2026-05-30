@@ -21,6 +21,9 @@ fixedbitset = "0.5.7"
 bitvec = "1.0.1"
 idlset = "0.2.5"
 croaring = "2.6.0"
+intervallum = "1.4.4"
+gcollections = "1.5.0"
+interval_set = "0.1.2"
 
 [dev-dependencies]
 proptest = "1.5"
