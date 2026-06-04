@@ -1,0 +1,32 @@
+filter_scenario = [
+  "MixedScenario",
+  "IterScenario",
+  "UnionScenario",
+  "IntersectionScenario",
+  "DifferenceScenario",
+  "SymmetricDifferenceScenario",
+]
+sample = 20
+min_bit = 5
+max_bit = 12
+filter_implementation = [
+  "ByteArraySet",
+  "SimdBitSet",
+  "CustomBitSet",
+  "LibBitSet",
+  "LibBitVec",
+  "LibFixedBitSet",
+  "LibIdlset",
+  "StdHashSet",
+  "StdHashSetDefaultFunc",
+  "StdHashSetNoHasher",
+  "LibRangeSetBlaze",
+  "LibRoaring",
+  "LibCRoaring",
+  "StdTreeSet",
+  "StdTreeSetDefaultFunc",
+  "LibFxHashSet",
+  "LibFxHashSetDefaultFunc",
+  "StdVecDicotomie",
+  "IntervalResourceSet",
+]
