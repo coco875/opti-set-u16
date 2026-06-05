@@ -28,7 +28,8 @@ macro_rules! register_set_int {
             LibAvlTree,
             LibRBTree,
             BinarySearchTree,
-            IntervalResourceSet
+            IntervalResourceSet,
+            FlatIntervalSet
         ])
     };
 }

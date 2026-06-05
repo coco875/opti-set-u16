@@ -25,6 +25,7 @@ mod std_tree_set;
 mod std_tree_set_default_func;
 mod std_vec;
 mod std_vec_dicotomie;
+mod flat_interval_set;
 
 pub use bit_tree_set::BitTreeSet;
 pub use byte_array_set::ByteArraySet;
@@ -53,6 +54,7 @@ pub use std_tree_set::StdTreeSet;
 pub use std_tree_set_default_func::StdTreeSetDefaultFunc;
 pub use std_vec::StdVec;
 pub use std_vec_dicotomie::StdVecDicotomie;
+pub use flat_interval_set::FlatIntervalSet;
 
 pub trait SetInt: 'static {
     fn clear(&mut self);
