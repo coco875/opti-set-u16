@@ -29,7 +29,8 @@ macro_rules! register_set_int {
             LibRBTree,
             BinarySearchTree,
             IntervalResourceSet,
-            AsmCustomBitSet
+            AsmCustomBitSet,
+            FlatIntervalSet
         ])
     };
 }
