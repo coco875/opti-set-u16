@@ -1,8 +1,9 @@
 import sys
+import argparse
 import polars as pl
 from pathlib import Path
 from plotnine import *
-from common import dark_theme, save_plot, create_palette, Theme, _TEXT_COL
+from common import dark_theme, save_plot, create_palette, Theme, get_theme
 
 # ════════════════════════════════════════════════════════════════
 # CONFIGURATION
@@ -10,6 +11,10 @@ from common import dark_theme, save_plot, create_palette, Theme, _TEXT_COL
 
 INPUT_FILE = "output.csv"
 OUTPUT_DIR = Path("benchmark_charts")
+
+# Theme Globals (will be updated dynamically based on CLI argument)
+THEME_FUNC = dark_theme
+TEXT_COL = "#E6EDF3"
 
 # ════════════════════════════════════════════════════════════════
 # DONNÉES
@@ -145,7 +150,7 @@ def combine_plots(plots: list["ggplot"], cols: int) -> "ggplot":
 
 
 def chart_global(
-    df: pl.DataFrame, palette: dict[str, str], themef: Theme = dark_theme
+    df: pl.DataFrame, palette: dict[str, str], themef: Theme = None
 ) -> None:
     """
     Bar chart unique : temps moyen par implémentation, toutes conditions confondues.
@@ -157,9 +162,11 @@ def chart_global(
     df: pl.DataFrame
     palette: dict[str, str]
         La palette des couleurs, pour chaque implémentation.
-    themef: Theme = dark_theme
-        Le thème du graphique
+    themef: Theme
+        Le thème du graphique (par défaut : dynamic global THEME_FUNC)
     """
+    if themef is None:
+        themef = THEME_FUNC
 
     stats = create_stats(df, ["impl"]).sort("mean_time")
     order = stats["impl"].to_list()
@@ -170,7 +177,7 @@ def chart_global(
         + geom_errorbar(
             aes(ymin="ymin", ymax="ymax"),
             width=0.35,
-            color=_TEXT_COL,
+            color=TEXT_COL,
             alpha=0.6,
             size=0.6,
         )
@@ -203,7 +210,7 @@ def chart_all_scenarios_faceted(
     df: pl.DataFrame,
     palette: dict[str, str],
     scenarios: list[str],
-    themef: Theme = dark_theme,
+    themef: Theme = None,
 ) -> None:
     """
     Un seul fichier avec un panel par scénario (facet_wrap).
@@ -216,9 +223,11 @@ def chart_all_scenarios_faceted(
         La palette des couleurs, pour chaque implémentation.
     scenarios: list[str]
         Liste des noms de scénarios à afficher (ordre des facettes)
-    themef: Theme = dark_theme
-        Le thème du graphique
+    themef: Theme
+        Le thème du graphique (par défaut : dynamic global THEME_FUNC)
     """
+    if themef is None:
+        themef = THEME_FUNC
 
     stats = create_stats(df, ["scenario", "impl"])
 
@@ -233,7 +242,7 @@ def chart_all_scenarios_faceted(
         + geom_errorbar(
             aes(ymin="ymin", ymax="ymax"),
             width=0.3,
-            color=_TEXT_COL,
+            color=TEXT_COL,
             alpha=0.55,
             size=0.5,
         )
@@ -263,7 +272,7 @@ def chart_scenario_individual(
     df: pl.DataFrame,
     palette: dict[str, str],
     scenarios: list[str],
-    themef: Theme = dark_theme,
+    themef: Theme = None,
 ) -> list["ggplot"]:
     """
     Génère un fichier PNG par scénario dans son sous-dossier.
@@ -276,14 +285,16 @@ def chart_scenario_individual(
         La palette des couleurs, pour chaque implémentation.
     scenarios: list[str]
         Liste des noms de scénarios à afficher (ordre des facettes)
-    themef: Theme = dark_theme
-        Le thème du graphique
+    themef: Theme
+        Le thème du graphique (par défaut : dynamic global THEME_FUNC)
 
     Returns:
     --------
     list[ggplot]
         Liste des objets ggplot générés.
     """
+    if themef is None:
+        themef = THEME_FUNC
 
     plots = []
 
@@ -299,7 +310,7 @@ def chart_scenario_individual(
             + geom_errorbar(
                 aes(ymin="ymin", ymax="ymax"),
                 width=0.35,
-                color=_TEXT_COL,
+                color=TEXT_COL,
                 alpha=0.65,
                 size=0.6,
             )
@@ -331,7 +342,7 @@ def chart_capacity_breakdown(
     df: pl.DataFrame,
     palette: dict[str, str],
     scenarios: list[str],
-    themef: Theme = dark_theme,
+    themef: Theme = None,
 ) -> list["ggplot"]:
     """
     Grouped bar chart : capacité maximale sur l'axe X, implémentation en couleur.
@@ -345,14 +356,16 @@ def chart_capacity_breakdown(
         La palette des couleurs, pour chaque implémentation.
     scenarios: list[str]
         Liste des noms de scénarios à afficher (ordre des facettes)
-    themef: Theme = dark_theme
-        Le thème du graphique
+    themef: Theme
+        Le thème du graphique (par défaut : dynamic global THEME_FUNC)
 
     Returns:
     --------
     list[ggplot]
         Liste des objets ggplot générés.
     """
+    if themef is None:
+        themef = THEME_FUNC
 
     plots = []
 
@@ -383,7 +396,7 @@ def chart_capacity_breakdown(
                 aes(ymin="ymin", ymax="ymax"),
                 position=position_dodge(width=0.85),
                 width=0.25,
-                color=_TEXT_COL,
+                color=TEXT_COL,
                 alpha=0.45,
                 size=0.4,
             )
@@ -417,12 +430,15 @@ def chart_capacity_breakdown(
 def chart_time_scaling(
     df: pl.DataFrame,
     palette: dict[str, str],
-    themef: Theme = dark_theme,
+    themef: Theme = None,
 ) -> None:
     """
     Génère un graphique linéaire montrant le passage à l'échelle (temps vs capacité maximale)
     de toutes les implémentations pour chaque scénario.
     """
+    if themef is None:
+        themef = THEME_FUNC
+
     stats = create_stats(df, ["scenario", "impl", "max_capacity"]).sort(
         ["scenario", "impl", "max_capacity"]
     )
@@ -462,6 +478,41 @@ def chart_time_scaling(
         height=fig_h,
     )
 
+    # Génère également un graphique individuel par scénario
+    for scenario in scenarios:
+        sub_stats = stats.filter(pl.col("scenario") == scenario)
+
+        scen_w = 12
+        scen_h = 7
+
+        scen_plot = (
+            ggplot(
+                sub_stats,
+                aes(x="factor(max_capacity)", y="mean_time", color="impl", group="impl"),
+            )
+            + geom_line(size=0.8)
+            + geom_point(size=1.5)
+            + scale_color_manual(values=palette, name="Implémentation")
+            + scale_y_continuous(labels=lambda lst: [f"{v:,.0f}" for v in lst])
+            + labs(
+                title=f"Courbe de passage à l'échelle - {scenario}",
+                x="Capacité maximale",
+                y="Temps moyen (cycles CPU)",
+            )
+            + themef((scen_w, scen_h))
+            + theme(
+                axis_text_x=element_text(angle=30, hjust=1, size=8),
+                legend_position="right",
+            )
+        )
+
+        save_plot(
+            scen_plot,
+            OUTPUT_DIR / scenario / "4_time_scaling.png",
+            width=scen_w,
+            height=scen_h,
+        )
+
 
 # ════════════════════════════════════════════════════════════════
 # Boxplots de Distribution et Variabilité des temps
@@ -471,32 +522,57 @@ def chart_time_scaling(
 def chart_time_distribution(
     df: pl.DataFrame,
     palette: dict[str, str],
-    themef: Theme = dark_theme,
+    themef: Theme = None,
 ) -> None:
     """
     Génère un boxplot montrant la distribution complète des temps d'exécution
     pour chaque implémentation sous chaque scénario (analyse de variance et stabilité).
     """
+    if themef is None:
+        themef = THEME_FUNC
+
     n_cols = 2
     scenarios = sorted(df["scenario"].unique().to_list())
     n_rows = (len(scenarios) + n_cols - 1) // n_cols
     fig_w = 20
-    fig_h = max(5, n_rows * 5.5)
+    fig_h = max(10, n_rows * 9.5)
+
+    # Calculate outliers per scenario and impl using Polars window functions
+    q1 = pl.col("time").quantile(0.25).over(["scenario", "impl"])
+    q3 = pl.col("time").quantile(0.75).over(["scenario", "impl"])
+    iqr = q3 - q1
+    df = df.with_columns(
+        ((pl.col("time") < q1 - 1.5 * iqr) | (pl.col("time") > q3 + 1.5 * iqr)).alias("is_outlier")
+    )
+    df_outliers = df.filter(pl.col("is_outlier"))
 
     plot = (
         ggplot(df, aes(x="impl", y="time", fill="impl"))
-        + geom_boxplot(outlier_size=0.8, outlier_alpha=0.4, show_legend=False)
-        + facet_wrap("~ scenario", scales="free_y", ncol=n_cols)
+        + geom_jitter(
+            data=df_outliers,
+            mapping=aes(x="impl", y="time", color="impl"),
+            width=0.15,
+            height=0,
+            size=0.8,
+            alpha=0.4,
+            show_legend=False,
+        )
+        + stat_boxplot(geom="errorbar", width=0.2)
+        + geom_boxplot(outlier_shape="", show_legend=False)
+        + coord_flip()
+        + facet_wrap("~ scenario", scales="free", ncol=n_cols)
         + scale_fill_manual(values=palette)
+        + scale_color_manual(values=palette)
         + scale_y_continuous(labels=lambda lst: [f"{v:,.0f}" for v in lst])
         + labs(
-            title="Distribution et variabilité des temps d'exécution par scénario",
-            x="Implémentation",
+            title="Distribution des temps d'exécution par implémentation et scénario",
+            x="",
             y="Temps d'exécution (cycles CPU)",
         )
         + themef((fig_w, fig_h))
         + theme(
-            axis_text_x=element_text(angle=40, hjust=1, size=7),
+            axis_text_x=element_text(size=12),
+            axis_title_x=element_text(angle=0, va="bottom", ha="right", size=13),
         )
     )
 
@@ -507,6 +583,51 @@ def chart_time_distribution(
         height=fig_h,
     )
 
+    # Génère également un graphique individuel par scénario
+    for scenario in scenarios:
+        sub = df.filter(pl.col("scenario") == scenario)
+        sub_outliers = df_outliers.filter(pl.col("scenario") == scenario)
+
+        n_impl = len(sub["impl"].unique())
+        scen_w = 12
+        scen_h = max(6, n_impl * 0.35)
+
+        scen_plot = (
+            ggplot(sub, aes(x="impl", y="time", fill="impl"))
+            + geom_jitter(
+                data=sub_outliers,
+                mapping=aes(x="impl", y="time", color="impl"),
+                width=0.15,
+                height=0,
+                size=0.8,
+                alpha=0.4,
+                show_legend=False,
+            )
+            + stat_boxplot(geom="errorbar", width=0.2)
+            + geom_boxplot(outlier_shape="", show_legend=False)
+            + coord_flip()
+            + scale_fill_manual(values=palette)
+            + scale_color_manual(values=palette)
+            + scale_y_continuous(labels=lambda lst: [f"{v:,.0f}" for v in lst])
+            + labs(
+                title=f"Temps d'exécution par implémentation - {scenario}",
+                x="",
+                y="Temps d'exécution (cycles CPU)",
+            )
+            + themef((scen_w, scen_h))
+            + theme(
+                axis_text_x=element_text(size=12),
+                axis_title_x=element_text(angle=0, va="bottom", ha="right", size=13),
+            )
+        )
+
+        save_plot(
+            scen_plot,
+            OUTPUT_DIR / scenario / "5_time_distribution.png",
+            width=scen_w,
+            height=scen_h,
+        )
+
 
 # ════════════════════════════════════════════════════════════════
 # POINT D'ENTRÉE
@@ -514,8 +635,105 @@ def chart_time_distribution(
 
 
 def main() -> None:
-    input_file = sys.argv[1] if len(sys.argv) > 1 else INPUT_FILE
-    df = load_data(input_file)
+    parser = argparse.ArgumentParser(
+        description="Génère des graphiques à partir des benchmarks d'opti-set-u16."
+    )
+    parser.add_argument(
+        "input_file",
+        nargs="?",
+        default=INPUT_FILE,
+        help=f"Chemin du fichier CSV de données (par défaut : {INPUT_FILE})",
+    )
+    parser.add_argument(
+        "--whitelist",
+        "-w",
+        nargs="+",
+        help="Liste d'implémentations à inclure sur les graphiques (les autres seront exclues).",
+    )
+    parser.add_argument(
+        "--blacklist",
+        "-b",
+        nargs="+",
+        help="Liste d'implémentations à exclure des graphiques.",
+    )
+    parser.add_argument(
+        "--output-dir",
+        "-o",
+        help="Dossier de sortie alternatif pour sauvegarder les graphiques (par défaut : benchmark_charts).",
+    )
+    parser.add_argument(
+        "--theme",
+        choices=["dark", "light"],
+        default="dark",
+        help="Thème des graphiques : 'dark' (sombre) ou 'light' (clair) (par défaut : 'dark').",
+    )
+
+    args = parser.parse_args()
+
+    global OUTPUT_DIR, THEME_FUNC, TEXT_COL
+    if args.output_dir:
+        OUTPUT_DIR = Path(args.output_dir)
+
+    theme_f, text_c = get_theme(args.theme)
+    THEME_FUNC = theme_f
+    TEXT_COL = text_c
+
+    df = load_data(args.input_file)
+
+    available_impls = sorted(df["impl"].unique().to_list())
+
+    if args.whitelist:
+        invalid_impls = [
+            impl for impl in args.whitelist if impl not in available_impls
+        ]
+        if invalid_impls:
+            print(
+                f"\033[33;1m[AVERTISSEMENT] Ces implémentations de la whitelist n'existent pas dans les données : {invalid_impls}\033[0m"
+            )
+            print(f"Disponibles : {available_impls}")
+
+        whitelist_set = set(args.whitelist)
+        df = df.filter(pl.col("impl").is_in(whitelist_set))
+        if df.is_empty():
+            print(
+                "\033[31;1m[ERREUR] Aucune des implémentations de la whitelist n'est présente dans les données.\033[0m"
+            )
+            sys.exit(1)
+
+    if args.blacklist:
+        invalid_impls = [
+            impl for impl in args.blacklist if impl not in available_impls
+        ]
+        if invalid_impls:
+            print(
+                f"\033[33;1m[AVERTISSEMENT] Ces implémentations de la blacklist n'existent pas dans les données : {invalid_impls}\033[0m"
+            )
+
+        blacklist_set = set(args.blacklist)
+        df = df.filter(~pl.col("impl").is_in(blacklist_set))
+        if df.is_empty():
+            print(
+                "\033[31;1m[ERREUR] Toutes les implémentations ont été exclues par la blacklist.\033[0m"
+            )
+            sys.exit(1)
+
+    name_map = {
+        "LibFxHashSetDefaultFunc": "FxHashSet (Default)",
+        "StdTreeSetDefaultFunc": "StdTreeSet (Default)",
+        "StdHashSetDefaultFunc": "StdHashSet (Default)",
+        "StdHashSetNoHasher": "StdHashSet (No Hasher)",
+        "StdVecDicotomie": "StdVec (Dichot)",
+        "LibCRoaring": "CRoaring",
+        "LibAvlTree": "AvlTree",
+        "LibRBTree": "RBTree",
+        "LibBitSet": "BitSet",
+        "LibBitVec": "BitVec",
+        "LibInterval": "IntervalSet",
+        "LibRoaring": "Roaring",
+        "LibIdlset": "IdlSet",
+        "LibFxHashSet": "FxHashSet",
+    }
+    df = df.with_columns(pl.col("impl").replace_strict(name_map, default=pl.col("impl")))
 
     scenarios = sorted(df["scenario"].unique().to_list())
     impls = sorted(df["impl"].unique().to_list())
@@ -535,78 +753,6 @@ def main() -> None:
     chart_time_scaling(df, palette)
     chart_time_distribution(df, palette)
 
-    print("\nAssemblage des images combinées…")
-
-    if scenario_plots:
-        cols = min(len(scenario_plots), 3)
-        combined = combine_plots(scenario_plots, cols)
-        out = OUTPUT_DIR / "3_combined_scenarios_avg_time"
-        n_rows = (len(scenario_plots) + cols - 1) // cols
-
-        # Dynamically calculate width based on max implementation count to avoid overlapping labels
-        max_impl = max(len(p.data["impl"].unique()) for p in scenario_plots)
-        col_width = max(7.0, max_impl * 1.1)
-        total_width = cols * col_width
-        total_height = n_rows * 5.0
-
-        combined.save(
-            str(out.with_suffix(".png")),
-            width=total_width,
-            height=total_height,
-            verbose=False,
-            limitsize=False,
-        )
-        combined.save(
-            str(out.with_suffix(".svg")),
-            width=total_width,
-            height=total_height,
-            verbose=False,
-            limitsize=False,
-        )
-        print(
-            f"\033[32m  ✓  {out.with_suffix('.png')}  &  {out.with_suffix('.svg')}\033[0m"
-        )
-
-    if capacity_plots:
-        cols = min(len(capacity_plots), 2)
-
-        # Hide the legend on all plots except the last one to save space and prevent collisions
-        combined_capacity_plots = []
-        for idx, p in enumerate(capacity_plots):
-            if idx < len(capacity_plots) - 1:
-                combined_capacity_plots.append(p + theme(legend_position="none"))
-            else:
-                combined_capacity_plots.append(p + theme(legend_position="right"))
-
-        combined = combine_plots(combined_capacity_plots, cols)
-        out = OUTPUT_DIR / "3_combined_scenarios_capacity"
-        n_rows = (len(capacity_plots) + cols - 1) // cols
-
-        # Dynamically calculate width based on max capacity count to avoid overlapping labels
-        max_cap = max(len(p.data["max_capacity"].unique()) for p in capacity_plots)
-        col_width = max(9.0, max_cap * 1.4 + 2.0)
-
-        # Add extra width for the single legend on the right
-        total_width = cols * col_width + 3.0
-        total_height = n_rows * 5.0
-
-        combined.save(
-            str(out.with_suffix(".png")),
-            width=total_width,
-            height=total_height,
-            verbose=False,
-            limitsize=False,
-        )
-        combined.save(
-            str(out.with_suffix(".svg")),
-            width=total_width,
-            height=total_height,
-            verbose=False,
-            limitsize=False,
-        )
-        print(
-            f"\033[32m  ✓  {out.with_suffix('.png')}  &  {out.with_suffix('.svg')}\033[0m"
-        )
 
     print(f"\nTous les graphiques sauvegardés dans : {OUTPUT_DIR.resolve()}/\n")
 

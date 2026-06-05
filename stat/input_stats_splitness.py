@@ -124,12 +124,30 @@ def main():
     )
 
     # plot ratio of hole per capacity with all seed (missing value)
+    q1_mv = pl.col("holes_ratio").quantile(0.25).over(["capacity"])
+    q3_mv = pl.col("holes_ratio").quantile(0.75).over(["capacity"])
+    iqr_mv = q3_mv - q1_mv
+    missing_values = missing_values.with_columns(
+        ((pl.col("holes_ratio") < q1_mv - 1.5 * iqr_mv) | (pl.col("holes_ratio") > q3_mv + 1.5 * iqr_mv)).alias("is_outlier")
+    )
+    mv_outliers = missing_values.filter(pl.col("is_outlier"))
+
     p5 = (
         ggplot(
             missing_values,
             aes(x="factor(capacity)", y="holes_ratio", fill="factor(capacity)"),
         )
-        + geom_boxplot()
+        + geom_jitter(
+            data=mv_outliers,
+            mapping=aes(x="factor(capacity)", y="holes_ratio", color="factor(capacity)"),
+            width=0.15,
+            height=0,
+            size=0.8,
+            alpha=0.4,
+            show_legend=False,
+        )
+        + stat_boxplot(geom="errorbar", width=0.2)
+        + geom_boxplot(outlier_shape="")
         + labs(title="ratio of holes per capacity all_seed (missing value)")
         + dark_theme((10, 6))
         + theme(legend_position="none")
@@ -142,12 +160,30 @@ def main():
     )
 
     # plot ratio of hole per capacity with all seed (non consecutive)
+    q1_nc = pl.col("holes_ratio").quantile(0.25).over(["capacity"])
+    q3_nc = pl.col("holes_ratio").quantile(0.75).over(["capacity"])
+    iqr_nc = q3_nc - q1_nc
+    non_consecutive = non_consecutive.with_columns(
+        ((pl.col("holes_ratio") < q1_nc - 1.5 * iqr_nc) | (pl.col("holes_ratio") > q3_nc + 1.5 * iqr_nc)).alias("is_outlier")
+    )
+    nc_outliers = non_consecutive.filter(pl.col("is_outlier"))
+
     p6 = (
         ggplot(
             non_consecutive,
             aes(x="factor(capacity)", y="holes_ratio", fill="factor(capacity)"),
         )
-        + geom_boxplot()
+        + geom_jitter(
+            data=nc_outliers,
+            mapping=aes(x="factor(capacity)", y="holes_ratio", color="factor(capacity)"),
+            width=0.15,
+            height=0,
+            size=0.8,
+            alpha=0.4,
+            show_legend=False,
+        )
+        + stat_boxplot(geom="errorbar", width=0.2)
+        + geom_boxplot(outlier_shape="")
         + labs(title="ratio of holes per capacity all_seed (non consecutive)")
         + dark_theme((10, 6))
         + theme(legend_position="none")
