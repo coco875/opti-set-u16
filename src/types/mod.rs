@@ -1,3 +1,4 @@
+mod asm_custom_bit_set;
 mod bit_tree_set;
 mod byte_array_set;
 mod custom_bit_set;
@@ -27,6 +28,7 @@ mod std_vec;
 mod std_vec_dicotomie;
 mod flat_interval_set;
 
+pub use asm_custom_bit_set::AsmCustomBitSet;
 pub use bit_tree_set::BitTreeSet;
 pub use byte_array_set::ByteArraySet;
 pub use custom_bit_set::CustomBitSet;

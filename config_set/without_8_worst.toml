@@ -10,6 +10,7 @@ sample = 20
 min_bit = 5
 max_bit = 12
 filter_implementation = [
+  "AsmCustomBitSet",
   "ByteArraySet",
   "SimdBitSet",
   "CustomBitSet",
