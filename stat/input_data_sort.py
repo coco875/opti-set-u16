@@ -39,11 +39,30 @@ def main():
     output_dir = Path("benchmark_charts/input_analysis")
 
     # GRAPH 1: Facet by seed (one graph per seed)
+    # Identify outliers per seed and capacity
+    q1 = pl.col("sortedness").quantile(0.25).over(["seed", "capacity"])
+    q3 = pl.col("sortedness").quantile(0.75).over(["seed", "capacity"])
+    iqr = q3 - q1
+    df_plot_seeds = df_plot.with_columns(
+        ((pl.col("sortedness") < q1 - 1.5 * iqr) | (pl.col("sortedness") > q3 + 1.5 * iqr)).alias("is_outlier")
+    )
+    df_outliers_seeds = df_plot_seeds.filter(pl.col("is_outlier"))
+
     p_seeds = (
         ggplot(
             df_plot, aes(x="factor(capacity)", y="sortedness", fill="factor(capacity)")
         )
-        + geom_boxplot()
+        + geom_jitter(
+            data=df_outliers_seeds,
+            mapping=aes(x="factor(capacity)", y="sortedness", color="factor(capacity)"),
+            width=0.15,
+            height=0,
+            size=0.8,
+            alpha=0.4,
+            show_legend=False,
+        )
+        + stat_boxplot(geom="errorbar", width=0.2)
+        + geom_boxplot(outlier_shape="")
         + facet_wrap("~ seed", labeller="label_both", ncol=4)
         + labs(
             title="Sortedness Distribution by Capacity (One Graph per Seed)",
@@ -58,11 +77,30 @@ def main():
     )
 
     # GRAPH 2: All seeds combined (Average / overall distribution)
+    # Identify outliers per capacity (all seeds combined)
+    q1_all = pl.col("sortedness").quantile(0.25).over(["capacity"])
+    q3_all = pl.col("sortedness").quantile(0.75).over(["capacity"])
+    iqr_all = q3_all - q1_all
+    df_plot_all = df_plot.with_columns(
+        ((pl.col("sortedness") < q1_all - 1.5 * iqr_all) | (pl.col("sortedness") > q3_all + 1.5 * iqr_all)).alias("is_outlier")
+    )
+    df_outliers_all = df_plot_all.filter(pl.col("is_outlier"))
+
     p_all = (
         ggplot(
             df_plot, aes(x="factor(capacity)", y="sortedness", fill="factor(capacity)")
         )
-        + geom_boxplot()
+        + geom_jitter(
+            data=df_outliers_all,
+            mapping=aes(x="factor(capacity)", y="sortedness", color="factor(capacity)"),
+            width=0.15,
+            height=0,
+            size=0.8,
+            alpha=0.4,
+            show_legend=False,
+        )
+        + stat_boxplot(geom="errorbar", width=0.2)
+        + geom_boxplot(outlier_shape="")
         + labs(
             title="Sortedness Distribution by Capacity (All Seeds Combined)",
             x="Capacity",

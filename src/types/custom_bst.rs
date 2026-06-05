@@ -194,16 +194,23 @@ impl SetInt for BinarySearchTree {
     }
 
     fn symmetric_difference_with(&mut self, other: &Self) {
-        for v in self.iter().collect::<Vec<u16>>() {
+        let mut to_remove = Vec::new();
+        let mut to_insert = Vec::new();
+        for v in self.iter() {
             if other.contains(v) {
-                self.remove(v);
+                to_remove.push(v);
             }
         }
-
         for v in other.iter() {
             if !self.contains(v) {
-                self.insert(v);
+                to_insert.push(v);
             }
+        }
+        for v in to_remove {
+            self.remove(v);
+        }
+        for v in to_insert {
+            self.insert(v);
         }
     }
 }
