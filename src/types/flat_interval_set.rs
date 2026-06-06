@@ -264,4 +264,3 @@ impl SetInt for FlatIntervalSet {
         self.inner = temp;
     }
 }
-
