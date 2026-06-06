@@ -8,7 +8,7 @@ use super::{SetInt, SetIntConstruct};
 /// - "∈" utilise une recherche dichotomique pour trouver la borne inférieur de l'interval le contenant
 #[derive(Clone, PartialEq, Debug)]
 pub struct FlatIntervalSet {
-    inner: Vec<u16>,
+    inner: Vec<u32>,
 }
 
 impl FlatIntervalSet {
@@ -17,6 +17,8 @@ impl FlatIntervalSet {
     }
 
     pub fn singleton(e: u16) -> Self {
+        let e = e as u32; // need to be u32 because else when inserting the max of an u16 it
+        // overflow
         FlatIntervalSet {
             inner: vec![e, e + 1],
         }
@@ -48,7 +50,7 @@ impl SetInt for FlatIntervalSet {
         //*     c'est un début d'interval et elem n'est pas contenu
         //* Sinon :
         //*     c'est une fin d'interval et elem est contenu
-
+        let elem = elem as u32;
         match self.inner.binary_search(&elem) {
             Ok(i) => i % 2 == 0,
             Err(i) => i % 2 == 1,
@@ -103,7 +105,8 @@ impl SetInt for FlatIntervalSet {
         Box::new(
             self.inner
                 .chunks(2)
-                .flat_map(|chunk| chunk[0]..chunk[1]),
+                .flat_map(|chunk| chunk[0]..chunk[1])
+                .map(|x| x as u16),
         )
     }
 
@@ -116,7 +119,7 @@ impl SetInt for FlatIntervalSet {
         //* Trie la liste de bornes, puis crée les intervale
         //*   - une intersection débute quand le niveau passe de 0 à >0 et termine quand il passe de 0 à >0
 
-        let mut bounds: Vec<(u16, i32)> = Vec::new(); // (e, δ)
+        let mut bounds: Vec<(u32, i32)> = Vec::new(); // (e, δ)
         for chunk in self.inner.chunks(2) {
             bounds.push((chunk[0], 1));
             bounds.push((chunk[1], -1));
@@ -149,8 +152,8 @@ impl SetInt for FlatIntervalSet {
         //*   - δ indique si on entre (+1) ou sort (-1) d'un interval
         //* Trie la liste de bornes, puis crée les intervale
         //*   - une intersection débute quand le niveau passe de <2 à 2 et termine quand il passe de 2 à <2
-        
-        let mut bounds: Vec<(u16, i32)> = Vec::new();  // (e, δ)
+
+        let mut bounds: Vec<(u32, i32)> = Vec::new(); // (e, δ)
         for chunk in self.inner.chunks(2) {
             bounds.push((chunk[0], 1));
             bounds.push((chunk[1], -1));
@@ -188,7 +191,7 @@ impl SetInt for FlatIntervalSet {
         //* La différence A \ B est active lorsque
         //*   - self_cov > 0 et other_cov == 0
 
-        let mut bounds: Vec<(u16, i32, i32)> = Vec::new(); // (e, δ_self, δ_other)
+        let mut bounds: Vec<(u32, i32, i32)> = Vec::new(); // (e, δ_self, δ_other)
         for chunk in self.inner.chunks(2) {
             bounds.push((chunk[0], 1, 0));
             bounds.push((chunk[1], -1, 0));
@@ -229,7 +232,7 @@ impl SetInt for FlatIntervalSet {
         //* La différence symétrique A Δ B est active lorsque
         //*   - (self_cov > 0) XOR (other_cov > 0) est vrai
 
-        let mut bounds: Vec<(u16, i32, i32)> = Vec::new(); // (e, δ_self, δ_other)
+        let mut bounds: Vec<(u32, i32, i32)> = Vec::new(); // (e, δ_self, δ_other)
         for chunk in self.inner.chunks(2) {
             bounds.push((chunk[0], 1, 0));
             bounds.push((chunk[1], -1, 0));
@@ -261,3 +264,4 @@ impl SetInt for FlatIntervalSet {
         self.inner = temp;
     }
 }
+
