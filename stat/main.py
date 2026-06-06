@@ -717,23 +717,7 @@ def main() -> None:
             )
             sys.exit(1)
 
-    name_map = {
-        "LibFxHashSetDefaultFunc": "FxHashSet (Default)",
-        "StdTreeSetDefaultFunc": "StdTreeSet (Default)",
-        "StdHashSetDefaultFunc": "StdHashSet (Default)",
-        "StdHashSetNoHasher": "StdHashSet (No Hasher)",
-        "StdVecDicotomie": "StdVec (Dichot)",
-        "LibCRoaring": "CRoaring",
-        "LibAvlTree": "AvlTree",
-        "LibRBTree": "RBTree",
-        "LibBitSet": "BitSet",
-        "LibBitVec": "BitVec",
-        "LibInterval": "IntervalSet",
-        "LibRoaring": "Roaring",
-        "LibIdlset": "IdlSet",
-        "LibFxHashSet": "FxHashSet",
-    }
-    df = df.with_columns(pl.col("impl").replace_strict(name_map, default=pl.col("impl")))
+    df = df.with_columns(pl.col("impl"))
 
     scenarios = sorted(df["scenario"].unique().to_list())
     impls = sorted(df["impl"].unique().to_list())
