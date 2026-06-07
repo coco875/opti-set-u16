@@ -59,7 +59,8 @@ python3 stat/main.py "$INPUT_CSV" --output-dir benchmark_charts/categories/bitse
     LibBitSet \
     LibBitVec \
     LibFixedBitSet \
-    LibIdlset
+    LibIdlset \
+    AsmCustomBitSet
 
 # 2. Hash Sets
 echo -e "\n${BLUE}--> 2. Generating charts for: Hash Sets (Hash-based O(1) structures)${NC}"
@@ -88,7 +89,8 @@ python3 stat/main.py "$INPUT_CSV" --output-dir benchmark_charts/categories/inter
     LibRangeSetBlaze \
     IntervalResourceSet \
     LibRoaring \
-    LibCRoaring
+    LibCRoaring \
+    FlatIntervalSet
 
 # 5. Sequences / Vectors
 echo -e "\n${BLUE}--> 5. Generating charts for: Sequences & Vectors (Linear sequential structures)${NC}"

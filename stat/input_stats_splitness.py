@@ -2,8 +2,9 @@ import polars as pl
 from plotnine import *
 import sys
 from collections import Counter
+import argparse
 from pathlib import Path
-from common import dark_theme, save_plot
+from common import get_theme, save_plot
 
 
 def count_missing_values(df):
@@ -53,7 +54,23 @@ def count_holes(df):
 
 
 def main():
-    INPUT_FILE = sys.argv[1] if len(sys.argv) > 1 else "data.csv"
+    parser = argparse.ArgumentParser(description="Analyze input data splitness/holes.")
+    parser.add_argument(
+        "input_file",
+        nargs="?",
+        default="data.csv",
+        help="Path to the input data CSV file (default: data.csv).",
+    )
+    parser.add_argument(
+        "--theme",
+        choices=["dark", "light"],
+        default="dark",
+        help="Thème des graphiques : 'dark' (sombre) ou 'light' (clair) (par défaut : 'dark').",
+    )
+    args = parser.parse_args()
+
+    INPUT_FILE = args.input_file
+    theme_func, _ = get_theme(args.theme)
 
     input_df = (
         pl.read_csv(INPUT_FILE)
@@ -78,7 +95,7 @@ def main():
         + geom_point(size=1)
         + facet_wrap("~seed")
         + labs(title="number of holes per capacity (missing value)")
-        + dark_theme((14, 10))
+        + theme_func((14, 10))
     )
     save_plot(p1, output_dir / "splitness_1_num_holes_missing.png", width=14, height=10)
 
@@ -88,7 +105,7 @@ def main():
         + geom_point(size=1)
         + facet_wrap("~seed")
         + labs(title="ratio of holes per capacity (missing value)")
-        + dark_theme((14, 10))
+        + theme_func((14, 10))
     )
     save_plot(
         p2, output_dir / "splitness_2_holes_ratio_missing.png", width=14, height=10
@@ -102,7 +119,7 @@ def main():
         + geom_point(size=1)
         + facet_wrap("~seed")
         + labs(title="number of holes per capacity (non consecutive)")
-        + dark_theme((14, 10))
+        + theme_func((14, 10))
     )
     save_plot(
         p3, output_dir / "splitness_3_num_holes_nonconsecutive.png", width=14, height=10
@@ -114,7 +131,7 @@ def main():
         + geom_point(size=1)
         + facet_wrap("~seed")
         + labs(title="ratio of holes per capacity (non consecutive)")
-        + dark_theme((14, 10))
+        + theme_func((14, 10))
     )
     save_plot(
         p4,
@@ -149,7 +166,7 @@ def main():
         + stat_boxplot(geom="errorbar", width=0.2)
         + geom_boxplot(outlier_shape="")
         + labs(title="ratio of holes per capacity all_seed (missing value)")
-        + dark_theme((10, 6))
+        + theme_func((10, 6))
         + theme(legend_position="none")
     )
     save_plot(
@@ -185,7 +202,7 @@ def main():
         + stat_boxplot(geom="errorbar", width=0.2)
         + geom_boxplot(outlier_shape="")
         + labs(title="ratio of holes per capacity all_seed (non consecutive)")
-        + dark_theme((10, 6))
+        + theme_func((10, 6))
         + theme(legend_position="none")
     )
     save_plot(

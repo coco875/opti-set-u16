@@ -8,4 +8,4 @@ filter_scenario = [
 ]
 sample = 20
 min_bit = 5
-max_bit = 12
+max_bit = 11

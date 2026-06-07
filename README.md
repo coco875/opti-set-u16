@@ -114,6 +114,8 @@ Here is a list of the integer set implementations benchmarked in this project, c
 - **IntervalSet**: A custom interval set.
 - **BinarySearchTree**: A custom binary search tree implementation.
 - **IntervalResourceSet**: A custom interval set storing disjoint sorted ranges in a vector.
+- **AsmCustomBitSet**: A custom bitset implementation utilizing inline assembly for SIMD/PXOR optimizations.
+- **FlatIntervalSet**: A custom interval set storing disjoint intervals in a flat, sorted `Vec<u16>` representation.
 
 ### Standard Library (`std`)
 

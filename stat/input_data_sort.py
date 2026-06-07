@@ -1,8 +1,10 @@
 import polars as pl
 from plotnine import *
 import re
+import sys
+import argparse
 from pathlib import Path
-from common import dark_theme, save_plot
+from common import get_theme, save_plot
 
 
 def calculate_sortedness(data_str):
@@ -17,7 +19,23 @@ def calculate_sortedness(data_str):
 
 
 def main():
-    df = pl.read_csv("data.csv")
+    parser = argparse.ArgumentParser(description="Analyze input data sortedness.")
+    parser.add_argument(
+        "input_file",
+        nargs="?",
+        default="data.csv",
+        help="Path to the input data CSV file (default: data.csv).",
+    )
+    parser.add_argument(
+        "--theme",
+        choices=["dark", "light"],
+        default="dark",
+        help="Thème des graphiques : 'dark' (sombre) ou 'light' (clair) (par défaut : 'dark').",
+    )
+    args = parser.parse_args()
+
+    theme_func, _ = get_theme(args.theme)
+    df = pl.read_csv(args.input_file)
     df.columns = [c.strip() for c in df.columns]
 
     # Strip spaces from capacity before casting to int
@@ -69,7 +87,7 @@ def main():
             x="Capacity",
             y="Proportion of sorted adjacent pairs",
         )
-        + dark_theme((20, 16))
+        + theme_func((20, 16))
         + theme(legend_position="none", axis_text_x=element_text(angle=45, hjust=1))
     )
     save_plot(
@@ -106,7 +124,7 @@ def main():
             x="Capacity",
             y="Proportion of sorted adjacent pairs",
         )
-        + dark_theme((10, 6))
+        + theme_func((10, 6))
         + theme(legend_position="none", axis_text_x=element_text(angle=45, hjust=1))
     )
     save_plot(

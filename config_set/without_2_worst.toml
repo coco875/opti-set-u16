@@ -8,7 +8,7 @@ filter_scenario = [
 ]
 sample = 20
 min_bit = 5
-max_bit = 12
+max_bit = 11
 filter_implementation = [
   "AsmCustomBitSet",
   "ByteArraySet",
@@ -32,6 +32,7 @@ filter_implementation = [
   "LibFxHashSetDefaultFunc",
   "StdVec",
   "StdVecDicotomie",
+  "StdLinkedList",
   "LibAvlTree",
   "LibRBTree",
   "BinarySearchTree",

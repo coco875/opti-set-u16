@@ -1,9 +1,10 @@
 import polars as pl
 from plotnine import *
 import sys
+import argparse
 from collections import Counter
 from pathlib import Path
-from common import dark_theme, save_plot
+from common import get_theme, save_plot
 
 
 def compute_run_metrics(data):
@@ -24,7 +25,23 @@ def compute_run_metrics(data):
 
 
 def main():
-    INPUT_FILE = sys.argv[1] if len(sys.argv) > 1 else "data.csv"
+    parser = argparse.ArgumentParser(description="Generate fragmentation plots.")
+    parser.add_argument(
+        "input_file",
+        nargs="?",
+        default="data.csv",
+        help="Path to the input data CSV file (default: data.csv).",
+    )
+    parser.add_argument(
+        "--theme",
+        choices=["dark", "light"],
+        default="dark",
+        help="Thème des graphiques : 'dark' (sombre) ou 'light' (clair) (par défaut : 'dark').",
+    )
+    args = parser.parse_args()
+
+    INPUT_FILE = args.input_file
+    theme_func, _ = get_theme(args.theme)
     output_dir = Path("benchmark_charts/input_analysis")
 
     input_df = (
@@ -72,7 +89,7 @@ def main():
             x="runs / number of values",
             y="capacity"
         )
-        + dark_theme((14, 10))
+        + theme_func((14, 10))
     )
 
     save_plot(
@@ -93,7 +110,7 @@ def main():
             x="runs",
             y="capacity"
         )
-        + dark_theme((14, 10))
+        + theme_func((14, 10))
     )
 
     save_plot(
@@ -113,7 +130,7 @@ def main():
             x="mean gap",
             y="capacity"
         )
-        + dark_theme((14, 10))
+        + theme_func((14, 10))
     )
 
     save_plot(
@@ -138,7 +155,7 @@ def main():
             x="capacity",
             y="run density"
         )
-        + dark_theme((10, 6))
+        + theme_func((10, 6))
         + theme(legend_position="none")
     )
 
@@ -164,7 +181,7 @@ def main():
             x="capacity",
             y="runs"
         )
-        + dark_theme((10, 6))
+        + theme_func((10, 6))
         + theme(legend_position="none")
     )
 
