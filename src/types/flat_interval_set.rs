@@ -11,23 +11,9 @@ pub struct FlatIntervalSet {
     inner: Vec<u32>,
 }
 
-impl FlatIntervalSet {
-    pub fn new() -> Self {
-        FlatIntervalSet { inner: Vec::new() }
-    }
-
-    pub fn singleton(e: u16) -> Self {
-        let e = e as u32; // need to be u32 because else when inserting the max of an u16 it
-        // overflow
-        FlatIntervalSet {
-            inner: vec![e, e + 1],
-        }
-    }
-}
-
 impl SetIntConstruct for FlatIntervalSet {
     fn new() -> Self {
-        FlatIntervalSet::new()
+        FlatIntervalSet { inner: Vec::new() }
     }
 
     fn with_capacity(capacity: usize) -> Self {
@@ -50,7 +36,9 @@ impl SetInt for FlatIntervalSet {
         //*     c'est un début d'interval et elem n'est pas contenu
         //* Sinon :
         //*     c'est une fin d'interval et elem est contenu
+
         let elem = elem as u32;
+
         match self.inner.binary_search(&elem) {
             Ok(i) => i % 2 == 0,
             Err(i) => i % 2 == 1,
@@ -60,25 +48,80 @@ impl SetInt for FlatIntervalSet {
     fn insert(&mut self, n: u16) {
         //* Stratégie
         //* —————————
-        //* Utilise l'union
+        //* Recherche si n est adjacent à des intervalles existants :
+        //*   - Si n+1 == début d'un interval ET n-1 == fin d'un interval : fusionner les deux
+        //*   - Si n+1 == début d'un interval : décaler ce début de -1
+        //*   - Si n == fin d'un interval : décaler cette fin de +1
+        //*   - Sinon : insérer un nouvel interval [n, n+1)
 
         if self.contains(n) {
             return;
         }
-        let singleton = FlatIntervalSet::singleton(n);
-        self.union_with(&singleton);
+
+        let n = n as u32;
+
+        let next_is_start = self.inner.binary_search(&(n + 1))
+            .ok()
+            .filter(|&i| i % 2 == 0);
+
+        let prev_is_end = self.inner.binary_search(&n)
+            .ok()
+            .filter(|&i| i % 2 == 1);
+
+        if let (Some(ei), Some(si)) = (prev_is_end, next_is_start) {
+            let new_end = self.inner[si + 1];
+            self.inner.remove(si + 1);
+            self.inner.remove(si);
+            self.inner[ei] = new_end;
+        } else if let Some(si) = next_is_start {
+            self.inner[si] = n;
+        } else if let Some(ei) = prev_is_end {
+            self.inner[ei] = n + 1;
+        } else {
+            let pos = self.inner.partition_point(|&x| x < n);
+            self.inner.insert(pos, n + 1);
+            self.inner.insert(pos, n);
+        }
     }
 
     fn remove(&mut self, n: u16) -> bool {
         //* Stratégie
         //* —————————
-        //* Utilise la différence
+        //* Recherche l'interval [a, b) contenant n :
+        //*   - Si n == a et n+1 == b (singleton) : supprimer l'interval entier
+        //*   - Si n == a : décaler le début de +1
+        //*   - Si n+1 == b : décaler la fin de -1
+        //*   - Sinon : scinder l'interval en [a, n) et [n+1, b)
 
         if !self.contains(n) {
             return false;
         }
-        let singleton = FlatIntervalSet::singleton(n);
-        self.difference_with(&singleton);
+
+        let n = n as u32;
+
+        let start_i = match self.inner.binary_search(&n) {
+            Ok(i) if i % 2 == 0 => i,
+            Ok(i) => i - 1,
+            Err(i) => i - 1,
+        };
+
+        let end_i = start_i + 1;
+        let a     = self.inner[start_i];
+        let b     = self.inner[end_i];
+
+        if a == n && b == n + 1 {
+            self.inner.remove(end_i);
+            self.inner.remove(start_i);
+        } else if a == n {
+            self.inner[start_i] = n + 1;
+        } else if b == n + 1 {
+            self.inner[end_i] = n;
+        } else {
+            self.inner[end_i] = n;
+            self.inner.insert(end_i + 1, b);
+            self.inner.insert(end_i + 1, n + 1);
+        }
+
         true
     }
 
@@ -152,8 +195,8 @@ impl SetInt for FlatIntervalSet {
         //*   - δ indique si on entre (+1) ou sort (-1) d'un interval
         //* Trie la liste de bornes, puis crée les intervale
         //*   - une intersection débute quand le niveau passe de <2 à 2 et termine quand il passe de 2 à <2
-
-        let mut bounds: Vec<(u32, i32)> = Vec::new(); // (e, δ)
+        
+        let mut bounds: Vec<(u32, i32)> = Vec::new();  // (e, δ)
         for chunk in self.inner.chunks(2) {
             bounds.push((chunk[0], 1));
             bounds.push((chunk[1], -1));
