@@ -3,7 +3,7 @@ from plotnine import *
 import sys
 from collections import Counter
 from pathlib import Path
-from common import dark_theme, save_plot
+from common import light_theme, save_plot
 
 
 def compute_run_metrics(data):
@@ -72,7 +72,7 @@ def main():
             x="runs / number of values",
             y="capacity"
         )
-        + dark_theme((14, 10))
+        + light_theme((14, 10))
     )
 
     save_plot(
@@ -93,7 +93,7 @@ def main():
             x="runs",
             y="capacity"
         )
-        + dark_theme((14, 10))
+        + light_theme((14, 10))
     )
 
     save_plot(
@@ -113,7 +113,7 @@ def main():
             x="mean gap",
             y="capacity"
         )
-        + dark_theme((14, 10))
+        + light_theme((14, 10))
     )
 
     save_plot(
@@ -132,13 +132,14 @@ def main():
                 fill="factor(capacity)"
             ),
         )
+        + stat_boxplot(geom="errorbar", width=0.2)
         + geom_boxplot()
         + labs(
             title="Run density distribution",
             x="capacity",
             y="run density"
         )
-        + dark_theme((10, 6))
+        + light_theme((10, 6))
         + theme(legend_position="none")
     )
 
@@ -158,13 +159,14 @@ def main():
                 fill="factor(capacity)"
             ),
         )
+        + stat_boxplot(geom="errorbar", width=0.2)
         + geom_boxplot()
         + labs(
             title="Run count distribution",
             x="capacity",
             y="runs"
         )
-        + dark_theme((10, 6))
+        + light_theme((10, 6))
         + theme(legend_position="none")
     )
 
