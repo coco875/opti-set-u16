@@ -519,6 +519,68 @@ def chart_time_scaling(
 # ════════════════════════════════════════════════════════════════
 
 
+def build_plot(
+    df_boxplot: pl.DataFrame,
+    df_jitter: pl.DataFrame,
+    palette: dict[str, str],
+    fig_w: int,
+    fig_h: int,
+    themef: Theme = None,
+    *,
+    faceted: bool
+) -> "ggplot":
+    """
+    Génère un boxplot montrant la distribution des temps d'exécution pour un df donné
+    """
+
+    impls_ordered = sorted(df_boxplot["impl"].unique().to_list())
+    x_order  = [f"{i}::{v}" for i in impls_ordered for v in ("box", "jitter")]
+    x_labels = {k: (k.split("::")[0] if k.endswith("::box") else "") for k in x_order}
+
+    df_combined = pl.concat([
+        df_boxplot.with_columns(pl.lit("box").alias("view")),
+        df_jitter.with_columns(pl.lit("jitter").alias("view")),
+    ]).with_columns(
+        (pl.col("impl") + "::" + pl.col("view")).alias("x_key")
+    )
+
+    plot = (
+        ggplot(df_combined, aes(x="x_key", y="time"))
+
+        + stat_boxplot(
+            data=df_combined.filter(pl.col("view") == "box"),
+            geom="errorbar", width=0.3,
+        )
+        + geom_boxplot(
+            data=df_combined.filter(pl.col("view") == "box"),
+            mapping=aes(fill="impl"),
+            outlier_shape="", show_legend=False, width=0.8,
+        )
+        + geom_jitter(
+            data=df_combined.filter(pl.col("view") == "jitter"),
+            mapping=aes(color="impl"),
+            width=0.25, height=0, size=0.8, alpha=0.4, show_legend=False,
+        )
+        + scale_x_discrete(
+            limits=x_order,
+            labels=[x_labels[k] for k in x_order],
+        )
+        + scale_fill_manual(values=palette)
+        + scale_color_manual(values=palette)
+        + scale_y_continuous(labels=lambda lst: [f"{v:,.0f}" for v in lst])
+        + labs(x="", y="Temps d'exécution (cycles CPU)")
+        + themef((fig_w, fig_h))
+        + theme(axis_text_x=element_text(size=12))
+        + coord_flip()
+    )
+
+    if faceted:
+        plot = plot + facet_wrap("~ scenario", scales="free", ncol=2) + labs(
+            title="Distribution des temps d'exécution par implémentation et scénario"
+        )
+
+    return plot
+
 def chart_time_distribution(
     df: pl.DataFrame,
     palette: dict[str, str],
@@ -531,102 +593,34 @@ def chart_time_distribution(
     if themef is None:
         themef = THEME_FUNC
 
-    n_cols = 2
-    scenarios = sorted(df["scenario"].unique().to_list())
-    n_rows = (len(scenarios) + n_cols - 1) // n_cols
-    fig_w = 20
-    fig_h = max(10, n_rows * 9.5)
-
-    # Calculate outliers per scenario and impl using Polars window functions
-    q1 = pl.col("time").quantile(0.25).over(["scenario", "impl"])
-    q3 = pl.col("time").quantile(0.75).over(["scenario", "impl"])
+    q1  = pl.col("time").quantile(0.25).over(["scenario", "impl"])
+    q3  = pl.col("time").quantile(0.75).over(["scenario", "impl"])
     iqr = q3 - q1
-    df = df.with_columns(
-        ((pl.col("time") < q1 - 1.5 * iqr) | (pl.col("time") > q3 + 1.5 * iqr)).alias("is_outlier")
+    df  = df.with_columns(
+        ((pl.col("time") < q1 - 1.5 * iqr) | (pl.col("time") > q3 + 1.5 * iqr))
+        .alias("is_inlier")
     )
-    df_outliers = df.filter(pl.col("is_outlier"))
+    df_inliers = df.filter(~pl.col("is_inlier"))
 
-    plot = (
-        ggplot(df, aes(x="impl", y="time", fill="impl"))
-        + geom_jitter(
-            data=df_outliers,
-            mapping=aes(x="impl", y="time", color="impl"),
-            width=0.15,
-            height=0,
-            size=0.8,
-            alpha=0.4,
-            show_legend=False,
-        )
-        + stat_boxplot(geom="errorbar", width=0.2)
-        + geom_boxplot(outlier_shape="", show_legend=False)
-        + coord_flip()
-        + facet_wrap("~ scenario", scales="free", ncol=n_cols)
-        + scale_fill_manual(values=palette)
-        + scale_color_manual(values=palette)
-        + scale_y_continuous(labels=lambda lst: [f"{v:,.0f}" for v in lst])
-        + labs(
-            title="Distribution des temps d'exécution par implémentation et scénario",
-            x="",
-            y="Temps d'exécution (cycles CPU)",
-        )
-        + themef((fig_w, fig_h))
-        + theme(
-            axis_text_x=element_text(size=12),
-            axis_title_x=element_text(angle=0, va="bottom", ha="right", size=13),
-        )
-    )
+    scenarios = sorted(df["scenario"].unique().to_list())
+    n_rows    = (len(scenarios) + 1) // 2
+    fig_w, fig_h = 20, max(10, n_rows * 9.5)
 
-    save_plot(
-        plot,
-        OUTPUT_DIR / "5_all_scenarios_time_distribution.png",
-        width=fig_w,
-        height=fig_h,
-    )
+    plot = build_plot(df, df_inliers, palette, fig_w, fig_h, themef, faceted=True)
+    save_plot(plot, OUTPUT_DIR / "5_all_scenarios_time_distribution.png", width=fig_w, height=fig_h)
 
-    # Génère également un graphique individuel par scénario
     for scenario in scenarios:
-        sub = df.filter(pl.col("scenario") == scenario)
-        sub_outliers = df_outliers.filter(pl.col("scenario") == scenario)
+        sub          = df.filter(pl.col("scenario") == scenario)
+        sub_outliers = df_inliers.filter(pl.col("scenario") == scenario)
 
-        n_impl = len(sub["impl"].unique())
-        scen_w = 12
-        scen_h = max(6, n_impl * 0.35)
+        n_impl       = sub["impl"].n_unique()
+        scen_w       = 12
+        scen_h       = max(6, n_impl * 0.7)
 
-        scen_plot = (
-            ggplot(sub, aes(x="impl", y="time", fill="impl"))
-            + geom_jitter(
-                data=sub_outliers,
-                mapping=aes(x="impl", y="time", color="impl"),
-                width=0.15,
-                height=0,
-                size=0.8,
-                alpha=0.4,
-                show_legend=False,
-            )
-            + stat_boxplot(geom="errorbar", width=0.2)
-            + geom_boxplot(outlier_shape="", show_legend=False)
-            + coord_flip()
-            + scale_fill_manual(values=palette)
-            + scale_color_manual(values=palette)
-            + scale_y_continuous(labels=lambda lst: [f"{v:,.0f}" for v in lst])
-            + labs(
-                title=f"Temps d'exécution par implémentation - {scenario}",
-                x="",
-                y="Temps d'exécution (cycles CPU)",
-            )
-            + themef((scen_w, scen_h))
-            + theme(
-                axis_text_x=element_text(size=12),
-                axis_title_x=element_text(angle=0, va="bottom", ha="right", size=13),
-            )
-        )
+        scen_plot = build_plot(sub, sub_outliers, palette, scen_w, scen_h, themef, faceted=False)
+        scen_plot = scen_plot + labs(title=f"Temps d'exécution par implémentation — {scenario}")
 
-        save_plot(
-            scen_plot,
-            OUTPUT_DIR / scenario / "5_time_distribution.png",
-            width=scen_w,
-            height=scen_h,
-        )
+        save_plot(scen_plot, OUTPUT_DIR / scenario / "5_time_distribution.png", width=scen_w, height=scen_h)
 
 
 # ════════════════════════════════════════════════════════════════
@@ -664,7 +658,7 @@ def main() -> None:
     parser.add_argument(
         "--theme",
         choices=["dark", "light"],
-        default="dark",
+        default="light",
         help="Thème des graphiques : 'dark' (sombre) ou 'light' (clair) (par défaut : 'dark').",
     )
 
@@ -748,8 +742,8 @@ def main() -> None:
 
     chart_global(df, palette)
     chart_all_scenarios_faceted(df, palette, scenarios)
-    scenario_plots = chart_scenario_individual(df, palette, scenarios)
-    capacity_plots = chart_capacity_breakdown(df, palette, scenarios)
+    chart_scenario_individual(df, palette, scenarios)
+    chart_capacity_breakdown(df, palette, scenarios)
     chart_time_scaling(df, palette)
     chart_time_distribution(df, palette)
 
