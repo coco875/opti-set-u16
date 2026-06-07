@@ -60,33 +60,27 @@ impl SetInt for FlatIntervalSet {
 
         let n = n as u32;
 
-        let next_start = self.inner.iter().position(|&x| x == n + 1 && {
-            let i = self.inner.iter().position(|&y| y == n + 1).unwrap();
-            i % 2 == 0
-        });
-        let prev_end = self.inner.iter().enumerate().position(|(i, &x)| x == n && i % 2 == 1);
+        let next_is_start = self.inner.binary_search(&(n + 1))
+            .ok()
+            .filter(|&i| i % 2 == 0);
 
-        match (prev_end, next_start) {
-            (Some(end_i), Some(start_i)) => {
-                let (lo, hi) = if end_i < start_i {
-                    (end_i, start_i)
-                } else {
-                    (start_i, end_i)
-                };
-                self.inner.remove(hi);
-                self.inner.remove(lo);
-            }
-            (None, Some(start_i)) => {
-                self.inner[start_i] = n;
-            }
-            (Some(end_i), None) => {
-                self.inner[end_i] = n + 1;
-            }
-            (None, None) => {
-                let pos = self.inner.partition_point(|&x| x < n);
-                self.inner.insert(pos, n + 1);
-                self.inner.insert(pos, n);
-            }
+        let prev_is_end = self.inner.binary_search(&n)
+            .ok()
+            .filter(|&i| i % 2 == 1);
+
+        if let (Some(ei), Some(si)) = (prev_is_end, next_is_start) {
+            let new_end = self.inner[si + 1];
+            self.inner.remove(si + 1);
+            self.inner.remove(si);
+            self.inner[ei] = new_end;
+        } else if let Some(si) = next_is_start {
+            self.inner[si] = n;
+        } else if let Some(ei) = prev_is_end {
+            self.inner[ei] = n + 1;
+        } else {
+            let pos = self.inner.partition_point(|&x| x < n);
+            self.inner.insert(pos, n + 1);
+            self.inner.insert(pos, n);
         }
     }
 
@@ -110,10 +104,10 @@ impl SetInt for FlatIntervalSet {
             Ok(i) => i - 1,
             Err(i) => i - 1,
         };
-        let end_i = start_i + 1;
 
-        let a = self.inner[start_i];
-        let b = self.inner[end_i];
+        let end_i = start_i + 1;
+        let a     = self.inner[start_i];
+        let b     = self.inner[end_i];
 
         if a == n && b == n + 1 {
             self.inner.remove(end_i);
