@@ -76,6 +76,32 @@ def load_data(path: str) -> pl.DataFrame:
 # UTILS
 # ════════════════════════════════════════════════════════════════
 
+def sample_jitter_data(
+    df: pl.DataFrame,
+    maxg: int = 2000,
+    cols: list[str] = ["scenario", "impl"]
+) -> pl.DataFrame:
+    """
+    Échantillonne le DataFrame pour limiter le nombre de points par groupe.
+    
+    Parameters:
+    -----------
+    maxg: int
+        Garde au plus `maxg` lignes
+    cols: list[str]
+        Garde par combinaison des colonnes `cols`.
+    """
+
+    if maxg is None:
+        return df
+
+    return (
+        df
+            .group_by(cols)
+            .map_groups(
+                lambda g: g.sample(n=min(len(g), maxg), with_replacement=False)
+            )
+    )
 
 def create_stats(df: pl.DataFrame, group_by: list[str]) -> pl.DataFrame:
     """
@@ -533,6 +559,8 @@ def build_plot(
     Génère un boxplot montrant la distribution des temps d'exécution pour un df donné
     """
 
+    df_jitter = sample_jitter_data(df_jitter, 500)
+
     impls_ordered = sorted(df_boxplot["impl"].unique().to_list())
     x_order  = [f"{i}::{v}" for i in impls_ordered for v in ("box", "jitter")]
     x_labels = {k: (k.split("::")[0] if k.endswith("::box") else "") for k in x_order}
@@ -600,24 +628,24 @@ def chart_time_distribution(
         ((pl.col("time") < q1 - 1.5 * iqr) | (pl.col("time") > q3 + 1.5 * iqr))
         .alias("is_inlier")
     )
-    df_inliers = df.filter(~pl.col("is_inlier"))
+    df_jitter = df.filter(~pl.col("is_inlier"))
 
     scenarios = sorted(df["scenario"].unique().to_list())
     n_rows    = (len(scenarios) + 1) // 2
     fig_w, fig_h = 20, max(10, n_rows * 9.5)
 
-    plot = build_plot(df, df_inliers, palette, fig_w, fig_h, themef, faceted=True)
+    plot = build_plot(df, df_jitter, palette, fig_w, fig_h, themef, faceted=True)
     save_plot(plot, OUTPUT_DIR / "5_all_scenarios_time_distribution.png", width=fig_w, height=fig_h)
 
     for scenario in scenarios:
-        sub          = df.filter(pl.col("scenario") == scenario)
-        sub_outliers = df_inliers.filter(pl.col("scenario") == scenario)
+        sub        = df.filter(pl.col("scenario") == scenario)
+        sub_violin = df_jitter.filter(pl.col("scenario") == scenario)
 
         n_impl       = sub["impl"].n_unique()
         scen_w       = 12
         scen_h       = max(6, n_impl * 0.7)
 
-        scen_plot = build_plot(sub, sub_outliers, palette, scen_w, scen_h, themef, faceted=False)
+        scen_plot = build_plot(sub, sub_violin, palette, scen_w, scen_h, themef, faceted=False)
         scen_plot = scen_plot + labs(title=f"Temps d'exécution par implémentation — {scenario}")
 
         save_plot(scen_plot, OUTPUT_DIR / scenario / "5_time_distribution.png", width=scen_w, height=scen_h)
