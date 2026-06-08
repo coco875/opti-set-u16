@@ -1,4 +1,4 @@
-use super::{Scenario, ScenarioContructor, fill_set};
+use super::{Scenario, ScenarioConstructor, fill_set};
 use crate::types::{SetInt, SetIntConstruct};
 
 pub struct UnionScenario<T: SetInt> {
@@ -6,7 +6,7 @@ pub struct UnionScenario<T: SetInt> {
     other: T,
 }
 
-impl<T: SetIntConstruct> ScenarioContructor for UnionScenario<T> {
+impl<T: SetIntConstruct> ScenarioConstructor for UnionScenario<T> {
     fn new(capacity: u16, fill_quantity: u16, data_quantity: u16, fill_data: &[u16]) -> Self {
         let indices_a = &fill_data[0..fill_quantity as usize];
         let indices_b =

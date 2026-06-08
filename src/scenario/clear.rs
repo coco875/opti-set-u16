@@ -1,11 +1,11 @@
-use super::{Scenario, ScenarioContructor, fill_set};
+use super::{Scenario, ScenarioConstructor, fill_set};
 use crate::types::{SetInt, SetIntConstruct};
 
 pub struct ClearScenario<T: SetInt> {
     bit_set: T,
 }
 
-impl<T: SetIntConstruct> ScenarioContructor for ClearScenario<T> {
+impl<T: SetIntConstruct> ScenarioConstructor for ClearScenario<T> {
     fn new(capacity: u16, fill_quantity: u16, _data_quantity: u16, fill_data: &[u16]) -> Self {
         let indices = &fill_data[0..fill_quantity as usize];
         let mut bit_set = T::with_capacity(capacity as usize);

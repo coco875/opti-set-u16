@@ -15,10 +15,6 @@ cargo run -- [OPTIONS]
 | `-s, --sample <N>` | Number of seed iterations | 10 |
 | `--min-bit <N>` | Minimum capacity bit width | 4 |
 | `--max-bit <N>` | Maximum capacity bit width | 16 |
-| `--min-fill-bit <N>` | Minimum fill bit width | `--min-bit` |
-| `--max-fill-bit <N>` | Maximum fill bit width | `--max-bit` |
-| `--min-data-bit <N>` | Minimum data bit width | `--min-bit` |
-| `--max-data-bit <N>` | Maximum data bit width | `--max-bit` |
 | `-f, --filter-scenario <NAME>` | Run only scenarios matching this substring | (none) |
 | `-i, --filter-implementation <NAME>` | Run only implementations matching this substring | (none) |
 | `-c, --config <PATH>` | Path to a TOML config file | (none) |
@@ -32,10 +28,6 @@ You can also use a TOML config file with `--config`:
 sample = 20
 min_bit = 8
 max_bit = 16
-min_fill_bit = 4
-max_fill_bit = 12
-min_data_bit = 4
-max_data_bit = 16
 filter_scenario = ["BitSet"]
 filter_implementation = ["SimdBitSet", "StdHashSet"]
 ```
@@ -63,7 +55,7 @@ macro_rules! register_set_int {
 ## Adding a New Scenario
 
 1. Create a new file in `src/scenario/` (e.g., `your_scenario.rs`)
-2. Implement the `Scenario` and `ScenarioContructor` traits:
+2. Implement the `Scenario` and `ScenarioConstructor` traits:
 
 ```rust
 pub struct YourScenario<T: SetInt> {
@@ -76,8 +68,8 @@ impl<T: SetInt> Scenario for YourScenario<T> {
     }
 }
 
-impl<T: SetInt> ScenarioContructor for YourScenario<T> {
-    fn new(capacity: u16, fill_quantity: u16, data_quantity: u16, seed: u64) -> Self {
+impl<T: SetIntConstruct> ScenarioConstructor for YourScenario<T> {
+    fn new(capacity: u16, fill_quantity: u16, data_quantity: u16, fill_data: &[u16]) -> Self {
         // initialize your scenario
     }
 }

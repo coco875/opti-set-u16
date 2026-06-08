@@ -658,7 +658,7 @@ def main() -> None:
     parser.add_argument(
         "--theme",
         choices=["dark", "light"],
-        default="light",
+        default="dark",
         help="Thème des graphiques : 'dark' (sombre) ou 'light' (clair) (par défaut : 'dark').",
     )
 

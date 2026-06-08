@@ -22,20 +22,42 @@ fi
 # Ensure the destination directory exists
 mkdir -p "$DEST_DIR"
 
-echo "Copying SVG files from '$SRC_DIR' to '$DEST_DIR'..."
+# Clean up target subdirectories in the destination directory to avoid stale files
+for cat in bitsets hashsets trees intervals_roaring vectors_lists; do
+    rm -rf "$DEST_DIR/$cat"
+done
+
+echo "Copying files from '$SRC_DIR' to '$DEST_DIR'..."
 echo "Excluding '*avg_time*' and '*capacity_breakdown*' files..."
 
 count=0
 while read -r file; do
     # Extract the relative path from the source directory
     rel_path="${file#$SRC_DIR/}"
-    dest_file="$DEST_DIR/$rel_path"
+    filename="$(basename "$file")"
     
-    # Create target subdirectory and copy the file
-    mkdir -p "$(dirname "$dest_file")"
-    cp "$file" "$dest_file"
-    
-    count=$((count + 1))
+    if [ "$filename" = "4_all_scenarios_time_scaling.svg" ] || [ "$filename" = "5_all_scenarios_time_distribution.svg" ]; then
+        # Skip the global category-level charts for 4 and 5
+        continue
+    elif [ "$filename" = "5_time_distribution.svg" ]; then
+        # Chart 5 per scenario: copy PNG instead of SVG
+        png_file="${file%.svg}.png"
+        rel_png_path="${rel_path%.svg}.png"
+        dest_file="$DEST_DIR/$rel_png_path"
+        
+        # Create target subdirectory and copy the file
+        mkdir -p "$(dirname "$dest_file")"
+        cp "$png_file" "$dest_file"
+        count=$((count + 1))
+    else
+        # All other charts (including chart 4 per scenario, 1_global_avg_time, etc.): copy SVG
+        dest_file="$DEST_DIR/$rel_path"
+        
+        # Create target subdirectory and copy the file
+        mkdir -p "$(dirname "$dest_file")"
+        cp "$file" "$dest_file"
+        count=$((count + 1))
+    fi
 done < <(find "$SRC_DIR" -type f -name "*.svg" \( ! -name "*avg_time*" -o -name "*1_global_avg_time.svg" \) ! -name "*capacity_breakdown*")
 
-echo "Done! Successfully copied $count SVG files to '$DEST_DIR'."
+echo "Done! Successfully copied $count files to '$DEST_DIR'."

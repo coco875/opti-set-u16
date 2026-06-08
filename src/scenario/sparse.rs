@@ -1,4 +1,4 @@
-use super::{Scenario, ScenarioContructor, fill_set};
+use super::{Scenario, ScenarioConstructor, fill_set};
 use crate::types::{SetInt, SetIntConstruct};
 
 pub struct SparseScenario<T: SetInt> {
@@ -7,7 +7,7 @@ pub struct SparseScenario<T: SetInt> {
     task_indices: Vec<u16>,
 }
 
-impl<T: SetIntConstruct> ScenarioContructor for SparseScenario<T> {
+impl<T: SetIntConstruct> ScenarioConstructor for SparseScenario<T> {
     fn new(capacity: u16, fill_quantity: u16, data_quantity: u16, fill_data: &[u16]) -> Self {
         let fill_indices = Vec::from(&fill_data[0..fill_quantity as usize]);
         let task_indices = Vec::from(

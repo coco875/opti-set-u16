@@ -41,17 +41,7 @@ struct Cli {
     #[arg(long)]
     max_bit: Option<u32>,
 
-    #[arg(long)]
-    min_fill_bit: Option<u32>,
 
-    #[arg(long)]
-    max_fill_bit: Option<u32>,
-
-    #[arg(long)]
-    min_data_bit: Option<u32>,
-
-    #[arg(long)]
-    max_data_bit: Option<u32>,
 
     #[arg(short, long)]
     filter_scenario: Option<Vec<String>>,

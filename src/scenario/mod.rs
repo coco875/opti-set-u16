@@ -43,12 +43,12 @@ pub trait Scenario {
     }
 }
 
-pub trait ScenarioContructor: Scenario {
+pub trait ScenarioConstructor: Scenario {
     /// Create a new scenario with:
     /// - `capacity`: maximum number of elements the set can hold
     /// - `fill_quantity`: number of elements to pre-fill the set with before running the task
     /// - `data_quantity`: number of elements to use as input data for the task
-    /// - `seed`: random seed for reproducibility
+    /// - `fill_data`: slice containing the pre-generated input data to be used for filling and execution
     fn new(capacity: u16, fill_quantity: u16, data_quantity: u16, fill_data: &[u16]) -> Self
     where
         Self: Sized;
